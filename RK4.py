@@ -1,14 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def phigrad(xi, n, theta0, phi0):
+def phigrad(xi, phi, n, theta):
     if xi==0:
         out = 0
     else:
         out = ((-2/xi)*phi0) - theta0**n
     return out
 
-def RK4(xi1, phi0, theta0, h):
+def RK4(func, xi1, phi0, theta0, n, h, *arg):
 
     # constants
     c = np.array([None, 0, 1/2, 1/2, 1])
@@ -38,10 +38,10 @@ def RK4(xi1, phi0, theta0, h):
         # find phi using RK4 method
 
         # calculate the values k1 through k4
-        k1 = h * func(theta[i -1], xi[i - 1] + c[1]*h, phi[i - 1])
-        k2 = h * func(theta[i -1], xi[i - 1] + c[2]*h, phi[i - 1] + a[2, 1]*k1)
-        k3 = h * func(theta[i -1], xi[i - 1] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2)
-        k4 = h * func(theta[i -1], xi[i - 1] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3)
+        k1 = h * func(xi[i - 1] + c[1]*h, phi[i - 1], theta[i -1], n, *arg)
+        k2 = h * func(xi[i - 1] + c[2]*h, phi[i - 1] + a[2, 1]*k1, theta[i -1], n, *arg)
+        k3 = h * func(xi[i - 1] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, theta[i -1], n, *arg)
+        k4 = h * func(xi[i - 1] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, theta[i -1], n, *arg)
 
         # calculate the next value for phi
         phi[i] = phi[i - 1] + b1*k1 + b2*k2 + b3*k3 + b4*k4
@@ -51,4 +51,17 @@ def RK4(xi1, phi0, theta0, h):
 
     return (xi, theta)
 
-RK4(1, 0, 1, 0.01)
+# outputs for different values of n
+xi0, theta0 = RK4(phigrad, 1, 0, 1, 0, 0.01)
+xi1, theta1 = RK4(phigrad, 1, 0, 1, 1, 0.01)
+xi5, theta5 = RK4(phigrad, 1, 0, 1, 5, 0.01)
+
+# plot
+plt.plot(xi0, theta0, label='n=0')
+plt.plot(xi1, theta1, label='n=1')
+plt.plot(xi5, theta5, label='n=5')
+plt.title('Euler Lane-Emden')
+plt.xlabel(r'$\xi$')
+plt.ylabel(r'$\theta$')
+plt.legend()
+plt.show()
