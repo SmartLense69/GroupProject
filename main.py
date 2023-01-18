@@ -1,18 +1,23 @@
-# This is a sample Python script.
+import DiffEquation as DE
+import RKF
+import matplotlib.pyplot as plt
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-import euler
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+N = 1.5
 
 
-# Press the green button in the gutter to run the script.
+def diff1(xi, phi, theta):
+    return -theta**N - (2/xi) * phi
+
+
+def diff2(phi):
+    return phi
+
+
 if __name__ == '__main__':
-    euler.euler()
+    diffEq1 = DE.DifferentialEquation(diff1, 1)
+    diffEq2 = DE.DifferentialEquation(diff2, 0)
+    xi, theta, phi = RKF.rkf(diffEq1, diffEq2, 0.1, 1)
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    plt.title("Solution to Lane-Emden")
+    plt.plot(xi, theta)
+    plt.show()
