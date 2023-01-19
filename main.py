@@ -1,55 +1,20 @@
-import diffequation as de
-import rungekutta5th as rk5
-import matplotlib.pyplot as plt
-import numpy as np
+# This is a sample Python script.
+
+# Press Shift+F10 to execute it or replace it with your code.
+# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+
+import euler
 
 
-def diff1(inXi, inPhi, inTheta, n=1):
-    return -inTheta**n - (2/inXi) * inPhi
+def print_hi(name):
+    # Use a breakpoint in the code line below to debug your script.
+    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
 
 
-def diff2(inPhi):
-    return inPhi
-
-
+# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    euler.euler()
 
-    # Define two differential equations, which will
-    # represent the two decoupled Lane-Emden eqs.
+# See PyCharm help at https://www.jetbrains.com/help/pycharm/
 
-    diffEq1 = de.DifferentialEquation(diff1, 0)
-    diffEq2 = de.DifferentialEquation(diff2, 1)
-
-    # Solve with RKF
-
-    xi0, phi0, theta0 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 0)
-    xi1, phi1, theta1 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 1)
-    xi5, phi5, theta5 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 5)
-
-    # Plot
-    plt.title("Solution to Lane-Emden for $n=0,1,5$")
-    plt.plot(xi0, theta0, label="$n=0$")
-    plt.plot(xi1, theta1, label="$n=1$")
-    plt.plot(xi5, theta5, label="$n=5$")
-    plt.grid()
-    plt.legend()
-    plt.xlim(0, 1)
-    plt.xlabel("Non-dimensional radius from 0 to 1")
-    plt.ylabel("Non-dimensional density from 0 to 1")
-    plt.show()
-
-    # Iterate through multiple N
-
-    NArray = np.arange(start=1, stop=5.5, step=0.5)
-    plt. title("Solution to Lane-Emden for $1<n<5$")
-
-    for n in NArray:
-        xi, phi, theta = rk5.rkf(diffEq1, diffEq2, 0.01, 1, n)
-        nLabel = "$n=" + str(n) + "$"
-        plt.plot(xi, theta, label=nLabel)
-
-    plt.grid()
-    plt.legend()
-    plt.xlabel("Non-dimensional radius from 0 to 1")
-    plt.ylabel("Non-dimensional density from 0 to 1")
-    plt.show()
+# help
