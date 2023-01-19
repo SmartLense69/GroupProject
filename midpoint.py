@@ -48,7 +48,7 @@ def midpoint(h, n, func1, ic1, func2=None, ic2=None):
     return xivalues, thetasol
 
 
-for l in np.arange(1, 5.5, 0.5):
+for l in np.arange(0, 5.5, 0.5):
     out = midpoint(0.001, l, phigrad, 0, thetagrad, 1)
     plt.plot(out[0], out[1], label="n=%.1f" %l)
 
