@@ -3,11 +3,9 @@ import rungekutta5th as rk5
 import matplotlib.pyplot as plt
 import numpy as np
 
-N = 0
 
-
-def diff1(inXi, inPhi, inTheta):
-    return -inTheta**N - (2/inXi) * inPhi
+def diff1(inXi, inPhi, inTheta, n=1):
+    return -inTheta**n - (2/inXi) * inPhi
 
 
 def diff2(inPhi):
@@ -24,13 +22,9 @@ if __name__ == '__main__':
 
     # Solve with RKF
 
-    xi0, phi0, theta0 = rk5.rkf(diffEq1, diffEq2, 0.01, 1)
-
-    N = 1
-    xi1, phi1, theta1 = rk5.rkf(diffEq1, diffEq2, 0.01, 1)
-
-    N = 5
-    xi5, phi5, theta5 = rk5.rkf(diffEq1, diffEq2, 0.01, 1)
+    xi0, phi0, theta0 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 0)
+    xi1, phi1, theta1 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 1)
+    xi5, phi5, theta5 = rk5.rkf(diffEq1, diffEq2, 0.01, 1, 5)
 
     # Plot
     plt.title("Solution to Lane-Emden for $n=0,1,5$")
@@ -50,10 +44,9 @@ if __name__ == '__main__':
     plt. title("Solution to Lane-Emden for $1<n<5$")
 
     for n in NArray:
-        N = n
-        xi, phi, theta = rk5.rkf(diffEq1, diffEq2, 0.01, 1)
-        nLabel = "$n=" + str(N) + "$"
-        plt.plot(xi0, theta0, label=nLabel)
+        xi, phi, theta = rk5.rkf(diffEq1, diffEq2, 0.01, 1, n)
+        nLabel = "$n=" + str(n) + "$"
+        plt.plot(xi, theta, label=nLabel)
 
     plt.grid()
     plt.legend()
