@@ -46,12 +46,23 @@ def euler(h, n, func1, ic1, func2=None, ic2=None):
     return xivalues, thetasol
 
 
-output0 = euler(0.001, 0, phigrad, 0, thetagrad, 1)
-output1 = euler(0.001, 1, phigrad, 0, thetagrad, 1)
-output5 = euler(0.001, 5, phigrad, 0, thetagrad, 1)
-plt.plot(output0[0], output0[1], label='n=0')
-plt.plot(output1[0], output1[1], label='n=1')
-plt.plot(output5[0], output5[1], label='n=5')
+# output0 = euler(0.001, 0, phigrad, 0, thetagrad, 1)
+# output1 = euler(0.001, 1, phigrad, 0, thetagrad, 1)
+# output5 = euler(0.001, 5, phigrad, 0, thetagrad, 1)
+# plt.plot(output0[0], output0[1], label='n=0')
+# plt.plot(output1[0], output1[1], label='n=1')
+# plt.plot(output5[0], output5[1], label='n=5')
+# plt.legend()
+# plt.title('Euler Lane-Emden')
+# plt.xlabel(r'$\xi$')
+# plt.ylabel(r'$\theta$')
+# plt.show()
+
+
+for l in np.arange(1, 5.5, 0.5):
+    out = euler(0.001, l, phigrad, 0, thetagrad, 1)
+    plt.plot(out[0], out[1], label="n=%.1f" %l)
+
 plt.legend()
 plt.title('Euler Lane-Emden')
 plt.xlabel(r'$\xi$')
