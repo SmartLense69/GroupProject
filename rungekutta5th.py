@@ -1,5 +1,5 @@
 import numpy as np
-import DiffEquation as DE
+import diffequation as DE
 
 
 A = np.asarray([
@@ -38,7 +38,7 @@ C = np.asarray(
 """
 
 
-def rkf(diffEq1: DE.DifferentialEquation, diffEq2: DE.DifferentialEquation, stepSize, maxTime=1):
+def rkf(diffEq1: DE.DifferentialEquation, diffEq2: DE.DifferentialEquation, stepSize, maxTime=1, coeff=1):
     """
     Solves a differential equation system.
     This function only applies for Lane-Emden currently.
@@ -46,6 +46,7 @@ def rkf(diffEq1: DE.DifferentialEquation, diffEq2: DE.DifferentialEquation, step
     :param diffEq2: Second decoupled diff. equation (phi)
     :param stepSize: Size of the step, often mentioned in the scripts as h
     :param maxTime: The max time the differential equation should be solved to.
+    :param coeff: Additional parameter for Lane-Emden
     :return: xi, phi and theta of the set of differential equations
     """
     xi = np.arange(0, maxTime + stepSize, stepSize)
@@ -60,34 +61,35 @@ def rkf(diffEq1: DE.DifferentialEquation, diffEq2: DE.DifferentialEquation, step
         # Solve the first differential equation
         # Keep theta constant
 
-        k1 = stepSize * diffEq1.func(xi[i], phi[i - 1], theta[i - 1])
+        k1 = stepSize * diffEq1.func(xi[i], phi[i - 1], theta[i - 1], coeff)
         k2 = stepSize * diffEq1.func(xi[i] + C[2] * stepSize,
-                                     phi[i - 1] + A[2, 1] * k1, theta[i - 1])
+                                     phi[i - 1] + A[2, 1] * k1, theta[i - 1], coeff)
         k3 = stepSize * diffEq1.func(xi[i] + C[3] * stepSize,
-                                     phi[i - 1] + A[3, 1] * k1 + A[3, 2] * k2, theta[i - 1])
+                                     phi[i - 1] + A[3, 1] * k1 + A[3, 2] * k2, theta[i - 1], coeff)
         k4 = stepSize * diffEq1.func(xi[i] + C[4] * stepSize,
-                                     phi[i - 1] + A[4, 1] * k1 + A[4, 2] * k2 + A[4, 3] * k3, theta[i - 1])
+                                     phi[i - 1] + A[4, 1] * k1 + A[4, 2] * k2 + A[4, 3] * k3, theta[i - 1], coeff)
         k5 = stepSize * diffEq1.func(xi[i] + C[5] * stepSize,
                                      phi[i - 1] + A[5, 1] * k1 + A[5, 2] * k2 + A[5, 3] * k3 + A[5, 4] * k4,
-                                     theta[i - 1])
+                                     theta[i - 1], coeff)
         k6 = stepSize * diffEq1.func(xi[i] + C[6] * stepSize,
                                      phi[i - 1] + A[6, 1] * k1 + A[6, 2] * k2 + A[6, 3] * k3 + A[6, 4] * k4
-                                     + A[ 6, 5] * k5, theta[i - 1])
+                                     + A[ 6, 5] * k5, theta[i - 1], coeff)
 
         phi[i] = phi[i - 1] + B[1] * k1 + B[2] * k2 + B[3] * k3 + B[4] * k4 + B[5] * k5 + B[6] * k6
 
         # Solve second differential equation.
         # There is no xi given, so only the y value of the function is altered
 
-        k1 = stepSize * diffEq2.func(phi[i])
-        k2 = stepSize * diffEq2.func(phi[i] + A[2, 1] * k1)
-        k3 = stepSize * diffEq2.func(phi[i] + A[3, 1] * k1 + A[3, 2] * k2)
-        k4 = stepSize * diffEq2.func(phi[i] + A[4, 1] * k1 + A[4, 2] * k2 + A[4, 3] * k3)
-        k5 = stepSize * diffEq2.func(phi[i] + A[5, 1] * k1 + A[5, 2] * k2 + A[5, 3] * k3
-                                     + A[5, 4] * k4)
-        k6 = stepSize * diffEq2.func(phi[i] + A[6, 1] * k1 + A[6, 2] * k2 + A[6, 3] * k3
-                                     + A[6, 4] * k4 + A[6, 5] * k5)
+        theta[i] = theta[i - 1] + stepSize * phi[i]
 
-        theta[i] = theta[i - 1] + B[1] * k1 + B[2] * k2 + B[3] * k3 + B[4] * k4 + B[5] * k5 + B[6] * k6
+        # k1 = stepSize * diffEq2.func(phi[i])
+        # k2 = stepSize * diffEq2.func(phi[i] + A[2, 1] * k1)
+        # k3 = stepSize * diffEq2.func(phi[i] + A[3, 1] * k1 + A[3, 2] * k2)
+        # k4 = stepSize * diffEq2.func(phi[i] + A[4, 1] * k1 + A[4, 2] * k2 + A[4, 3] * k3)
+        # k5 = stepSize * diffEq2.func(phi[i] + A[5, 1] * k1 + A[5, 2] * k2 + A[5, 3] * k3
+        #                            + A[5, 4] * k4)
+        # k6 = stepSize * diffEq2.func(phi[i] + A[6, 1] * k1 + A[6, 2] * k2 + A[6, 3] * k3
+        #                            + A[6, 4] * k4 + A[6, 5] * k5)
+        # theta[i] = theta[i - 1] + B[1] * k1 + B[2] * k2 + B[3] * k3 + B[4] * k4 + B[5] * k5 + B[6] * k6
 
     return xi, phi, theta
