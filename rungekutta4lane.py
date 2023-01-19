@@ -61,7 +61,7 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK algorithm
-    xi, theta = rungekutta4lane(phigrad, 3, 0, 1, n, 0.01)
+    xi, theta = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
 
     # plot curve
     plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
