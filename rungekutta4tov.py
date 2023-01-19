@@ -1,14 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def phigrad(xi, phi, n, theta):
-    if xi==0:
-        out = 0
-    else:
-        out = ((-2/xi)*phi) - theta**n
-    return out
+# this is so that the state functions can be varied
+# to be implemented at a later point
+def statefunc(P, K):
+    return 0
 
-def RK4(func, xi1, phi0, theta0, n, h, *arg):
+def hydro()
+def tov(r, P, m, K, G, c):
+    return - ( (G * m * (P / K)**(n/(n+1))) / r**2 ) * \
+             ( 1 + P / (P / K)**(n/(n+1)) * c**2 ) * \
+             ( 1 + (4 *  np.pi * r**3 * P) / (m * c**2) ) * \
+             ( 1 - (2 * G * m) / (r * c**2) )**(-1)
+
+def masscont(r, rho):
+    return 4 * np.pi * r**2 * rho
+
+def rungekutta4tov(r1, m0, P0, n, h, *arg):
 
     # constants
     c = np.array([None, 0, 1/2, 1/2, 1])
@@ -61,10 +69,10 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    xi, theta = RK4(phigrad, 1, 0, 1, n, 0.01)
+    xi, theta = rungekutta4tov(phigrad, 3, 0, 1, n, 0.01)
 
     # plot curve
-    plt.plot(xi, theta, c=c, label='n={0}'.format(n))
+    plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
 
 # plot configs
 plt.title('Euler Lane-Emden')
