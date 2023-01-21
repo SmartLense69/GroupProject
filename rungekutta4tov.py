@@ -12,10 +12,7 @@ def hydro(r, P, m, G, c, K, n):
     return - ( G * m * statefunc(P, K, n) / r**2 )
 
 def tov(r, P, m, G, c, K, n):
-    return - ( (G * m * statefunc(P, K, n)) / r**2 ) * \
-             ( 1 + P / (statefunc(P, K, n) * c**2) ) * \
-             ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * \
-             ( 1 - (2 * G * m) / (r * c**2) )**(-1)
+    return - ( (G * m * statefunc(P, K, n)) / r**2 ) * ( 1 + P / (statefunc(P, K, n) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
 def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
 
@@ -30,7 +27,7 @@ def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
 
     # initialise the arrays to be used
 
-    r = np.arange(1, r1 + h, h)
+    r = np.arange(0, r1 + h, h)
     # number of time steps
     steps = np.shape(r)[0]
 
@@ -46,20 +43,20 @@ def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
 
         # find m using RK4 method
         # calculate the values k1 through k4
-        k1 = h * masscont(r[i - 1] + c[1]*h, P[i - 1], K, n, *arg)
-        k2 = h * masscont(r[i - 1] + c[2]*h, P[i - 1], K, n, *arg)
-        k3 = h * masscont(r[i - 1] + c[3]*h, P[i - 1], K, n, *arg)
-        k4 = h * masscont(r[i - 1] + c[4]*h, P[i - 1], K, n, *arg)
+        k1 = h * masscont(r[i] + c[1]*h, P[i - 1], K, n, *arg)
+        k2 = h * masscont(r[i] + c[2]*h, P[i - 1], K, n, *arg)
+        k3 = h * masscont(r[i] + c[3]*h, P[i - 1], K, n, *arg)
+        k4 = h * masscont(r[i] + c[4]*h, P[i - 1], K, n, *arg)
 
         # find next value for m
         m[i] = m[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
 
         # find P using RK4 method
         # calculate the values k1 through k4
-        k1 = h * starfunc(r[i - 1] + c[1] * h, P[i - 1], m[i], G, c0, K, n, *arg)
-        k2 = h * starfunc(r[i - 1] + c[2] * h, P[i - 1] + a[2, 1] * k1, m[i], G, c0, K, n, *arg)
-        k3 = h * starfunc(r[i - 1] + c[3] * h, P[i - 1] + a[3, 1] * k1 + a[3, 2] * k2, m[i], G, c0, K, n, *arg)
-        k4 = h * starfunc(r[i - 1] + c[4] * h, P[i - 1] + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i], G, c0, K, n, *arg)
+        k1 = h * starfunc(r[i] + c[1] * h, P[i - 1], m[i], G, c0, K, n, *arg)
+        k2 = h * starfunc(r[i] + c[2] * h, P[i - 1] + a[2, 1] * k1, m[i], G, c0, K, n, *arg)
+        k3 = h * starfunc(r[i] + c[3] * h, P[i - 1] + a[3, 1] * k1 + a[3, 2] * k2, m[i], G, c0, K, n, *arg)
+        k4 = h * starfunc(r[i] + c[4] * h, P[i - 1] + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i], G, c0, K, n, *arg)
 
         # find next value for m
         P[i] = P[i - 1] + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
@@ -76,10 +73,10 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    r, P = rungekutta4tov(masscont, tov, 0.5e9, 1, 1e20, 6.67e-11, 3e8, 1e9, n, 10000)
+    r, P = rungekutta4tov(masscont, tov, 5e6, 1, 1e20, 6.67e-11, 3e8, 1e9, n, 10000)
 
     # switch to density
-    #rho = (P / 1e9)**(n/(n+1))
+    #rho = (P / 5e6)**(n/(n+1))
 
     # plot curve
     plt.plot(r, P, c=c, label='n={0}'.format(n))
