@@ -62,11 +62,10 @@ def eulerlimit(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
         if Psol[i]/Psol[0] < 1e-5:
             Psol = Psol[:i]
             rvalues = rvalues[:i]
+            msol = msol[:i]
             break
 
-
-
-    return (rvalues, Psol)
+    return (rvalues, Psol, msol)
 
 
 
@@ -81,7 +80,9 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run euler
-    r, P = eulerlimit(masscont, hydro, 0, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
+    r, P, m = eulerlimit(masscont, hydro, 0, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
+
+    print("For n = ", n, ", m = ", m[len(m)-1])
 
     # switch to density
     rho = (P / 5e11)**(n/(n+1))
