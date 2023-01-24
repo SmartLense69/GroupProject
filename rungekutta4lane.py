@@ -61,22 +61,22 @@ def plot(n):
     nLabel = "$n=" + str(n) + "$ with RK4"
     plt.plot(xiValues, thetaSol, label=nLabel)
 
-# # plot configs
-# plt.figure(figsize=(12, 8))
-#
-# for n, c in zip(n_list, colours):
-#
-#     # run RK algorithm
-#     xi, theta = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
-#
-#     # plot curve
-#     plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
-#
-# # plot configs
-# plt.title('RK4 Lane-Emden')
-# plt.xlabel(r'$\xi$')
-# plt.ylabel(r'$\theta$')
-# plt.legend()
-# plt.show()
+# plot configs
+plt.figure(figsize=(12, 8))
+
+for n, c in zip(n_list, colours):
+
+    # run RK algorithm
+    xi, theta = rungekutta4lane(phigrad, 4, 0, 1, n, 0.01)
+
+    # plot curve
+    plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
+
+# plot configs
+plt.title('RK4 Lane-Emden')
+plt.xlabel(r'$\xi$')
+plt.ylabel(r'$\theta$')
+plt.legend()
+plt.show()
 
 

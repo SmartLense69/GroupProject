@@ -1,20 +1,28 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 # this is so that the state functions can be varied
-def statefunc(P, K, n):
-    return (P / K)**(n/(n+1))
+def statefunc(K, n, P=None, rho=None):
+    if P != None:
+        return (P / K)**(n/(n+1))
+    if rho != None:
+        return K * rho**(1 + 1/n)
+
 
 def masscont(r, P, K, n):
-    return 4 * np.pi * r**2 * statefunc(P, K, n)
+    return 4 * np.pi * r**2 * statefunc(K, n, P=P)
+
 
 def hydro(r, P, m, G, c, K, n):
-    return - ( G * m * statefunc(P, K, n) / r**2 )
+    return - ( G * m * statefunc(K, n, P=P) / r**2 )
+
 
 def tov(r, P, m, G, c, K, n):
-    return - ( (G * m * statefunc(P, K, n)) / r**2 ) * ( 1 + P / (statefunc(P, K, n) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
+    return - ( (G * m * statefunc(K, n, P=P)) / r**2 ) * ( 1 + P / (statefunc(K, n, P=P) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
-def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
+
+def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 
     # constants
     c = np.array([None, 0, 1/2, 1/2, 1])
@@ -36,7 +44,7 @@ def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
 
     # set the initial conditions
     m[0] = m0
-    P[0] = P0
+    P[0] = statefunc(K, n, rho=rho0)
 
     # Loop over time
     for i in range(1, steps):
@@ -64,8 +72,8 @@ def rungekutta4tov(masscont, starfunc, r1, m0, P0, G, c0, K, n, h, *arg):
     return (r, P)
 
 # outputs for different values of n
-n_list = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k', 'gray']
+n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
 
 # plot configs
 plt.figure(figsize=(12, 8))
@@ -73,17 +81,17 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    r, P = rungekutta4tov(masscont, hydro, 2e7, 1, 1e20, 6.67e-11, 3e8, 1e9, n, 1e5)
+    r, P = rungekutta4(masscont, hydro, 5e6, 0, 1e9, 6.67e-8, 3e10, 5e11, n, 1e4)
 
     # switch to density
-    rho = (P / 5e6)**(n/(n+1))
+    rho = (P / 5e11)**(n/(n+1))
 
     # plot curve
-    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #/np.max(rho)
+    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #rho/np.max(rho)
 
 # plot configs
 plt.title('RK4 hydrostatic')
 plt.xlabel('r')
-plt.ylabel('P')
+plt.ylabel(r'$\rho$')
 plt.legend()
 plt.show()
