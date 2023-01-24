@@ -1,22 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import constants as consts
+
+np.seterr(all='raise')
+
 
 # this is so that the state functions can be varied
 def statefunc(K, n, P=None, rho=None):
     if P != None:
-        return (P / K)**np.abs(n/(n+1))
+        return np.power(P / K, np.abs(n/(n+1)))
     if rho != None:
-        return K * rho**(1 + 1/n)
+        return K * np.power(rho,(1 + 1/n))
 
 
 # mass continuity equation
 def masscont(r, P, K, n):
     return 4 * np.pi * r**2 * statefunc(K, n, P=P)
 
+
 # hydrstatic equilibrium equation
 def hydro(r, P, m, G, c, K, n):
     return - ( G * m * statefunc(K, n, P=P) / r**2 )
+
 
 # TOV equation
 def tov(r, P, m, G, c, K, n):
@@ -56,18 +60,18 @@ def euler1(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
     for i in range(1, steps):
 
         # find m using euler method
-        msol[i] = msol[i-1] + h*masscont(rvalues[i], Psol[i-1], K, n, *arg)
+        msol[i] = msol[i-1] + h*masscont(rvalues[i], np.abs(Psol[i-1]), K, n, *arg)
 
-        # find P using euelr method
-        Psol[i] = Psol[i - 1] + h*starfunc(rvalues[i], Psol[i-1], msol[i], G, c0, K, n, *arg)
+        # find P using euler method
+        Psol[i] = np.abs(Psol[i - 1]) + h*starfunc(rvalues[i], np.abs(Psol[i-1]), msol[i], G, c0, K, n, *arg)
 
-    return (rvalues, Psol)
+    return (rvalues, np.abs(Psol))
 
 # outputs for different values of n
-# n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-# colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
-n_list = [1.5]
-colours = ['deeppink']
+n_list = np.asarray([0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5])
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
+# n_list = [1.5]
+#colours = ['deeppink']
 
 # plot configs
 plt.figure(figsize=(12, 8))
@@ -77,12 +81,13 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run euler
-    r, P = euler1(masscont, hydro, 1.5e8, 0, 1e9, 6.67e-8, 3e10, 5e11, n, 1e5)
+    K = np.asarray([5e11])
+    r, P = euler1(masscont, hydro, 1.5e8, 0, 1e9, 6.67e-8, 3e10, K, n, 1e5)
 
     print(len(r))
 
     # switch to density
-    rho = (P / 5e11)**np.abs(n/(n+1))
+    rho = (P / K)**np.abs(n/(n+1))
 
     # plot curve
     plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #rho/np.max(rho)
