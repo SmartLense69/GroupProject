@@ -8,7 +8,7 @@ def phigrad(xi, phi, n, theta):
         out = ((-2/xi)*phi) - theta**n
     return out
 
-def RK4(func, xi1, phi0, theta0, n, h, *arg):
+def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
 
     # constants
     c = np.array([None, 0, 1/2, 1/2, 1])
@@ -38,10 +38,10 @@ def RK4(func, xi1, phi0, theta0, n, h, *arg):
         # find phi using RK4 method
 
         # calculate the values k1 through k4
-        k1 = h * func(xi[i - 1] + c[1]*h, phi[i - 1], n, theta[i -1], *arg)
-        k2 = h * func(xi[i - 1] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i -1], *arg)
-        k3 = h * func(xi[i - 1] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i -1], *arg)
-        k4 = h * func(xi[i - 1] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i -1], *arg)
+        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i -1], *arg)
+        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i -1], *arg)
+        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i -1], *arg)
+        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i -1], *arg)
 
         # calculate the next value for phi
         phi[i] = phi[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
@@ -60,11 +60,11 @@ plt.figure(figsize=(12, 8))
 
 for n, c in zip(n_list, colours):
 
-    # run RK4
-    xi, theta = RK4(phigrad, 1, 0, 1, n, 0.01)
+    # run RK algorithm
+    xi, theta = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
 
     # plot curve
-    plt.plot(xi, theta, c=c, label='n={0}'.format(n))
+    plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
 
 # plot configs
 plt.title('Euler Lane-Emden')
