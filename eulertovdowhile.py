@@ -7,7 +7,7 @@ def statefunc(K, n, P=None, rho=None):
     if P != None:
         return (P / K)**(n/(n+1))
     if rho != None:
-        return K * rho**(1 + 1/n)
+        return K * (rho**(1 + 1/n))
 
 
 # mass continuity equation
@@ -23,7 +23,7 @@ def tov(r, P, m, G, c, K, n):
     return - ( (G * m * statefunc(K, n, P=P)) / r**2 ) * ( 1 + P / (statefunc(K, n, P=P) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
 
-def euler1(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
+def eulerlimit(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
     """
 
     :param masscont:
@@ -56,13 +56,19 @@ def euler1(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
 
         # find m using euler method
         msol[i] = msol[i-1] + h*masscont(rvalues[i], Psol[i-1], K, n, *arg)
-
         # find P using euelr method
         Psol[i] = Psol[i - 1] + h*starfunc(rvalues[i], Psol[i-1], msol[i], G, c0, K, n, *arg)
 
-    do()
+        if Psol[i]/Psol[0] < 1e-5:
+            Psol = Psol[:i]
+            rvalues = rvalues[:i]
+            break
+
+
 
     return (rvalues, Psol)
+
+
 
 # outputs for different values of n
 n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
@@ -75,7 +81,7 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run euler
-    r, P = euler1(masscont, hydro, 0, 1e9, 6.67e-8, 3e10, 5e11, n, 1e4)
+    r, P = eulerlimit(masscont, hydro, 0, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
 
     # switch to density
     rho = (P / 5e11)**(n/(n+1))
