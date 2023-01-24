@@ -38,10 +38,10 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
         # find phi using RK4 method
 
         # calculate the values k1 through k4
-        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i -1], *arg)
-        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i -1], *arg)
-        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i -1], *arg)
-        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i -1], *arg)
+        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i - 1], *arg)
+        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i - 1], *arg)
+        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i - 1], *arg)
+        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i - 1], *arg)
 
         # calculate the next value for phi
         phi[i] = phi[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4

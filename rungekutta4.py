@@ -81,14 +81,6 @@ for n, c in zip(n_list, colours):
     # plot curve
     plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #/np.max(rho)
 
-'''
-# run RK4
-r, P = rungekutta4tov(masscont, hydro, 7e9, 1, 1e20, 6.67e-11, 3e8, 1e9, 1.5, 10000)
-#r, P = rungekutta4tov(masscont, tov, 700, 1, 5000, 6.67e-3, 3, 1, 1.5, 1)
-# plot curve
-plt.plot(r, P, c='r', label='n=1.5')
-'''
-
 # plot configs
 plt.title('RK4 hydrostatic')
 plt.xlabel('r')
