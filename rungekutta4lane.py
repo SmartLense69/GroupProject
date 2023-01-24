@@ -38,10 +38,10 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
         # find phi using RK4 method
 
         # calculate the values k1 through k4
-        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i -1], *arg)
-        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i -1], *arg)
-        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i -1], *arg)
-        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i -1], *arg)
+        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i - 1], *arg)
+        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i - 1], *arg)
+        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i - 1], *arg)
+        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i - 1], *arg)
 
         # calculate the next value for phi
         phi[i] = phi[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
@@ -61,22 +61,22 @@ def plot(n):
     nLabel = "$n=" + str(n) + "$ with RK4"
     plt.plot(xiValues, thetaSol, label=nLabel)
 
-# # plot configs
-# plt.figure(figsize=(12, 8))
-#
-# for n, c in zip(n_list, colours):
-#
-#     # run RK algorithm
-#     xi, theta = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
-#
-#     # plot curve
-#     plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
-#
-# # plot configs
-# plt.title('RK4 Lane-Emden')
-# plt.xlabel(r'$\xi$')
-# plt.ylabel(r'$\theta$')
-# plt.legend()
-# plt.show()
+# plot configs
+plt.figure(figsize=(12, 8))
+
+for n, c in zip(n_list, colours):
+
+    # run RK algorithm
+    xi, theta = rungekutta4lane(phigrad, 4, 0, 1, n, 0.01)
+
+    # plot curve
+    plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
+
+# plot configs
+plt.title('RK4 Lane-Emden')
+plt.xlabel(r'$\xi$')
+plt.ylabel(r'$\theta$')
+plt.legend()
+plt.show()
 
 
