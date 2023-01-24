@@ -73,13 +73,13 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    r, P = rungekutta4tov(masscont, tov, 5e6, 1, 1e20, 6.67e-11, 3e8, 1e9, n, 10000)
+    r, P = rungekutta4tov(masscont, hydro, 2e7, 1, 1e20, 6.67e-11, 3e8, 1e9, n, 1e5)
 
     # switch to density
-    #rho = (P / 5e6)**(n/(n+1))
+    rho = (P / 5e6)**(n/(n+1))
 
     # plot curve
-    plt.plot(r, P, c=c, label='n={0}'.format(n))
+    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #/np.max(rho)
 
 '''
 # run RK4
