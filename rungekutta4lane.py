@@ -56,6 +56,11 @@ n_list = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k', 'gray']
 
 
+def plot(n):
+    xiValues, thetaSol = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.001)
+    nLabel = "$n=" + str(n) + "$ with RK4"
+    plt.plot(xiValues, thetaSol, label=nLabel)
+
 # # plot configs
 # plt.figure(figsize=(12, 8))
 #
@@ -73,3 +78,5 @@ colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'p
 # plt.ylabel(r'$\theta$')
 # plt.legend()
 # plt.show()
+
+
