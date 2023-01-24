@@ -3,8 +3,8 @@ import plotter
 if __name__ == '__main__':
 
     n = 5
-    plotEuler = False
-    plotRK4 = False
+    plotEuler = True
+    plotRK4 = True
     plotRKF = True
 
     plotter.plotBegin()

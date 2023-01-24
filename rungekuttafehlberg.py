@@ -104,8 +104,8 @@ def plot(n):
     diffEq2 = de.DifferentialEquation(diff2, 1)
 
     # Solve with RKF
-    xi, phi, theta = rkf(diffEq1, diffEq2, 0.01, 3, n)
+    xi, phi, theta = rkf(diffEq1, diffEq2, 0.001, 3, n)
 
     # Plot
     nLabel = "$n=" + str(n) + "$ with RKF"
-    plt.plot(xi, theta, label=nLabel)
+    plt.plot(xi, theta, label=nLabel, linestyle='dashed')
