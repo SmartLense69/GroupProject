@@ -65,6 +65,6 @@ def euler(h, n, func1, ic1, func2=None, ic2=None):
 # plt.show()
 
 def plot(n):
-     xiValues, thetaSol = euler(0.001, n, phigrad, 0, thetagrad, 1)
-     nLabel = "$n=" + str(n) + "$ with Euler"
-     plt.plot(xiValues, thetaSol, label=nLabel)
+    xiValues, thetaSol = euler(0.001, n, phigrad, 0, thetagrad, 1)
+    nLabel = "$n=" + str(n) + "$ with Euler"
+    plt.plot(xiValues, thetaSol, label=nLabel)
