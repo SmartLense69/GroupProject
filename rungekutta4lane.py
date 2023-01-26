@@ -67,15 +67,17 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK algorithm
-    xi, theta = rungekutta4lane(phigrad, 4, 0, 1, n, 0.01)
+    xi, theta = rungekutta4lane(phigrad, 10, 0, 1, n, 0.01)
 
     # plot curve
-    plt.plot(xi, theta**n, c=c, label='n={0}'.format(n))
+    plt.plot(xi, theta, c=c, label='n={0}'.format(n))
 
 # plot configs
+plt.hlines(0, 0, 10, color='k', linestyles='--')
 plt.title('RK4 Lane-Emden')
 plt.xlabel(r'$\xi$')
 plt.ylabel(r'$\theta$')
+plt.ylim([-0.25, 1.1])
 plt.legend()
 plt.show()
 

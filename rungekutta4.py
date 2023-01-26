@@ -50,23 +50,24 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
     for i in range(1, steps):
 
         # find m using RK4 method
-        # calculate the values k1 through k4
-        k1 = h * masscont(r[i] + c[1]*h, np.abs(P[i - 1]), K, n, *arg)
-        k2 = h * masscont(r[i] + c[2]*h, np.abs(P[i - 1]), K, n, *arg)
-        k3 = h * masscont(r[i] + c[3]*h, np.abs(P[i - 1]), K, n, *arg)
-        k4 = h * masscont(r[i] + c[4]*h, np.abs(P[i - 1]), K, n, *arg)
+        # calculate the values k1, j1 through k4, j4
+        j1 = h * masscont(r[i] + c[1] * h, np.abs(P[i - 1]), K, n, *arg)
+        k1 = h * starfunc(r[i] + c[1] * h, np.abs(P[i - 1]), m[i - 1], G, c0, K, n, *arg)
+
+        j2 = h * masscont(r[i] + c[2] * h, np.abs(P[i - 1]) + (1/2) * k1, K, n, *arg)
+        k2 = h * starfunc(r[i] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i - 1] + (1/2) * j1, G, c0, K, n, *arg)
+
+        j3 = h * masscont(r[i] + c[3] * h, np.abs(P[i - 1]) + (1/2) * k2, K, n, *arg)
+        k3 = h * starfunc(r[i] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, m[i - 1] + (1/2) * j2, G, c0, K, n, *arg)
+
+        j4 = h * masscont(r[i] + c[4] * h, np.abs(P[i - 1]) + k3, K, n, *arg)
+        k4 = h * starfunc(r[i] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i - 1] + j3, G, c0,
+                          K, n, *arg)
 
         # find next value for m
-        m[i] = m[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
+        m[i] = m[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4
 
-        # find P using RK4 method
-        # calculate the values k1 through k4
-        k1 = h * starfunc(r[i] + c[1] * h, np.abs(P[i - 1]), m[i], G, c0, K, n, *arg)
-        k2 = h * starfunc(r[i] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i], G, c0, K, n, *arg)
-        k3 = h * starfunc(r[i] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, m[i], G, c0, K, n, *arg)
-        k4 = h * starfunc(r[i] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i], G, c0, K, n, *arg)
-
-        # find next value for m
+        # find next value for P
         P[i] = np.abs(P[i - 1]) + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
 
         if P[i]/P[0] < 1e-5:
@@ -78,8 +79,8 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
     return (r, P, m)
 
 # outputs for different values of n
-n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
+n_list = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'k']
 
 # plot configs
 plt.figure(figsize=(12, 8))
@@ -87,7 +88,7 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    r, P, m = rungekutta4(masscont, tov, 2e8, 0, 1e9, 6.67e-8, 3e10, 5e11, n, 1e5)
+    r, P, m = rungekutta4(masscont, tov, 2e8, 1, 1e9, 6.67e-8, 3e10, 5e11, n, 1e5)
     print('n:', n, 'R:', r[-1], 'M:', m[-1])
     print()
 
@@ -103,3 +104,26 @@ plt.xlabel('r')
 plt.ylabel(r'$\rho$')
 plt.legend()
 plt.show()
+
+
+"""
+# find m using RK4 method
+# calculate the values k1 through k4
+k1 = h * masscont(r[i] + c[1]*h, np.abs(P[i - 1]), K, n, *arg)
+k2 = h * masscont(r[i] + c[2]*h, np.abs(P[i - 1]), K, n, *arg)
+k3 = h * masscont(r[i] + c[3]*h, np.abs(P[i - 1]), K, n, *arg)
+k4 = h * masscont(r[i] + c[4]*h, np.abs(P[i - 1]), K, n, *arg)
+
+# find next value for m
+m[i] = m[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
+
+# find P using RK4 method
+# calculate the values k1 through k4
+k1 = h * starfunc(r[i] + c[1] * h, np.abs(P[i - 1]), m[i], G, c0, K, n, *arg)
+k2 = h * starfunc(r[i] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i], G, c0, K, n, *arg)
+k3 = h * starfunc(r[i] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, m[i], G, c0, K, n, *arg)
+k4 = h * starfunc(r[i] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i], G, c0, K, n, *arg)
+
+# find next value for m
+P[i] = np.abs(P[i - 1]) + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
+"""
