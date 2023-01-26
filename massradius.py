@@ -40,13 +40,13 @@ def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
     _massRadiusArray = np.zeros((2, _size))
     for i in range(_size):
         _r, _P, _m = rk4.rungekutta4(_massContinuity, _tov, 2e10,
-                                     0, _rhoValues[i], 6.67e-8, 3e10, 5e11, _N, 1e5)
+                                     0, _rhoValues[i], 6.67e-8, 3e10, 5e12, _N, 1e5)
 
         _massRadiusArray[0, i] = _r[-1]
         _massRadiusArray[1, i] = _m[-1]
 
     print(_massRadiusArray)
-    plt.plot(_massRadiusArray[0], _massRadiusArray[1], label="Non-Relativistic\nEquation of state")
+    plt.plot(_massRadiusArray[0]/100000, _massRadiusArray[1]/(2*1e+33), label="Non-Relativistic\nEquation of state")
     plt.xlabel("Radius in cm")
     plt.ylabel("Mass in g")
     plt.legend()
