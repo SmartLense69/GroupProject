@@ -90,7 +90,7 @@ rkf5 = rukufe.rkf(diffEq1, diffEq2, h, 3, 5)
 
 
 # n = 0
-testh = [1, 1e-1, 5e-1, 1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4, 1e-5, 5e-5, 1e-6]
+testh = [1, 1e-1, 5e-1, 1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4] #, 1e-5, 5e-5, 1e-6]
 # testh = np.arange(1e-6, 1e-1, 5e-5)
 eulererror0 = np.zeros(len(testh))
 rkfourerror0 = np.zeros(len(testh))

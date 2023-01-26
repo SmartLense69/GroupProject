@@ -35,7 +35,7 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 
     # initialise the arrays to be used
 
-    r = np.arange(0, r1 + h, h)
+    r = np.arange(1, r1 + h, h)
     # number of time steps
     steps = np.shape(r)[0]
 
@@ -51,18 +51,19 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 
         # find m using RK4 method
         # calculate the values k1, j1 through k4, j4
-        j1 = h * masscont(r[i] + c[1] * h, np.abs(P[i - 1]), K, n, *arg)
-        k1 = h * starfunc(r[i] + c[1] * h, np.abs(P[i - 1]), m[i - 1], G, c0, K, n, *arg)
+        j1 = h * masscont(r[i - 1] + c[1] * h, np.abs(P[i - 1]), K, n, *arg)
+        k1 = h * starfunc(r[i - 1] + c[1] * h, np.abs(P[i - 1]), m[i - 1], G, c0, K, n, *arg)
 
-        j2 = h * masscont(r[i] + c[2] * h, np.abs(P[i - 1]) + (1/2) * k1, K, n, *arg)
-        k2 = h * starfunc(r[i] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i - 1] + (1/2) * j1, G, c0, K, n, *arg)
+        j2 = h * masscont(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, K, n, *arg)
+        k2 = h * starfunc(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i - 1] + a[2, 1] * j1, G, c0, K, n, *arg)
 
-        j3 = h * masscont(r[i] + c[3] * h, np.abs(P[i - 1]) + (1/2) * k2, K, n, *arg)
-        k3 = h * starfunc(r[i] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, m[i - 1] + (1/2) * j2, G, c0, K, n, *arg)
+        j3 = h * masscont(r[i - 1] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, K, n, *arg)
+        k3 = h * starfunc(r[i - 1] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2,
+                          m[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, G, c0, K, n, *arg)
 
-        j4 = h * masscont(r[i] + c[4] * h, np.abs(P[i - 1]) + k3, K, n, *arg)
-        k4 = h * starfunc(r[i] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, m[i - 1] + j3, G, c0,
-                          K, n, *arg)
+        j4 = h * masscont(r[i - 1] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, K, n, *arg)
+        k4 = h * starfunc(r[i - 1] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3,
+                          m[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, G, c0, K, n, *arg)
 
         # find next value for m
         m[i] = m[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4
@@ -82,28 +83,27 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 n_list = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'k']
 
-# plot configs
-plt.figure(figsize=(12, 8))
-
-for n, c in zip(n_list, colours):
-
-    # run RK4
-    r, P, m = rungekutta4(masscont, tov, 2e8, 1, 1e9, 6.67e-8, 3e10, 5e11, n, 1e5)
-    print('n:', n, 'R:', r[-1], 'M:', m[-1])
-    print()
-
-    # switch to density
-    rho = statefunc(5e11, n, P=P)
-
-    # plot curve
-    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n))
-
-# plot configs
-plt.title('RK4 hydrostatic')
-plt.xlabel('r')
-plt.ylabel(r'$\rho$')
-plt.legend()
-plt.show()
+# # plot configs
+# plt.figure(figsize=(12, 8))
+#
+# for n, c in zip(n_list, colours):
+#
+#     # run RK4
+#     r, P, m = rungekutta4(masscont, tov, 2e8, 1, 1e9, 6.67e-8, 3e10, 1e13, n, 1e4)
+#     print('n:', n, 'R:', r[-1], 'M:', m[-1])
+#
+#     # switch to density
+#     rho = statefunc(5e11, n, P=P)
+#
+#     # plot curve
+#     plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n))
+#
+# # plot configs
+# plt.title('RK4 hydrostatic')
+# plt.xlabel('r')
+# plt.ylabel(r'$\rho$')
+# plt.legend()
+# plt.show()
 
 
 """

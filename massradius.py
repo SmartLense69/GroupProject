@@ -47,7 +47,7 @@ def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
     _massRadiusArray = np.zeros((2, _size))
     for i in range(_size):
         _r, _P, _m = rk4.rungekutta4(_massContinuity, _tov, 2e10,
-                                     0, _rhoValues[i], 6.67e-8, 3e10, 5e12, _N, 1e5)
+                                     1, _rhoValues[i], 6.67e-8, 3e10, 1e13, _N, 1e5)
 
         _massRadiusArray[0, i] = _r[-1]
         _massRadiusArray[1, i] = _m[-1]

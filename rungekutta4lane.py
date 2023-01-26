@@ -36,18 +36,28 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
     for i in range(1, steps):
 
         # find phi using RK4 method
+        # calculate the values k1, j1 through k4, j4
+        # find phi using RK4 method
+        # calculate the values k1, j1 through k4, j4
+        j1 = h * func(xi[i - 1] + c[1] * h, phi[i - 1], n, theta[i - 1], *arg)
+        k1 = h * (phi[i - 1])
 
-        # calculate the values k1 through k4
-        k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i - 1], *arg)
-        k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i - 1], *arg)
-        k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i - 1], *arg)
-        k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i - 1], *arg)
+        j2 = h * func(xi[i - 1] + c[2] * h, phi[i - 1] + a[2, 1] * j1, n, theta[i - 1] + a[2, 1] * k1, *arg)
+        k2 = h * (phi[i - 1] + a[2, 1] * j1)
 
-        # calculate the next value for phi
-        phi[i] = phi[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
+        j3 = h * func(xi[i - 1] + c[3] * h, phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, n,
+                      theta[i - 1] + a[3, 1] * k1 + a[3, 2] * k2, *arg)
+        k3 = h * (phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2)
 
-        # find theta using simple Euler method
-        theta[i] = theta[i - 1] + h * phi[i]
+        j4 = h * func(xi[i - 1] + c[4] * h, phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, n,
+                      theta[i - 1] + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, *arg)
+        k4 = h * (phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3)
+
+        # find next value for phi
+        phi[i] = phi[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4
+
+        # find next value for theta
+        theta[i] = theta[i - 1] + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
 
     return (xi, theta)
 
@@ -57,7 +67,7 @@ colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'p
 
 
 def plot(n):
-    xiValues, thetaSol = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.001)
+    xiValues, thetaSol = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
     nLabel = "$n=" + str(n) + "$ with RK4"
     plt.plot(xiValues, thetaSol, label=nLabel)
 
@@ -67,13 +77,13 @@ def plot(n):
 # for n, c in zip(n_list, colours):
 #
 #     # run RK algorithm
-#     xi, theta = rungekutta4lane(phigrad, 10, 0, 1, n, 0.01)
+#     xi, theta = rungekutta4lane(phigrad, 35, 0, 1, n, 0.01)
 #
 #     # plot curve
 #     plt.plot(xi, theta, c=c, label='n={0}'.format(n))
 #
 # # plot configs
-# plt.hlines(0, 0, 10, color='k', linestyles='--')
+# plt.hlines(0, 0, 35, color='k', linestyles='--')
 # plt.title('RK4 Lane-Emden')
 # plt.xlabel(r'$\xi$')
 # plt.ylabel(r'$\theta$')
@@ -82,3 +92,17 @@ def plot(n):
 # plt.show()
 
 
+
+"""
+# calculate the values k1 through k4
+k1 = h * func(xi[i] + c[1]*h, phi[i - 1], n, theta[i - 1], *arg)
+k2 = h * func(xi[i] + c[2]*h, phi[i - 1] + a[2, 1]*k1, n, theta[i - 1], *arg)
+k3 = h * func(xi[i] + c[3]*h, phi[i - 1] + a[3, 1]*k1 + a[3, 2]*k2, n, theta[i - 1], *arg)
+k4 = h * func(xi[i] + c[4]*h, phi[i - 1] + a[4, 1]*k1 + a[4, 2]*k2 + a[4, 3]*k3, n, theta[i - 1], *arg)
+
+# calculate the next value for phi
+phi[i] = phi[i - 1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
+
+# find theta using simple Euler method
+theta[i] = theta[i - 1] + h * phi[i - 1]
+"""
