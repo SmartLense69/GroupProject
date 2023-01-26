@@ -16,7 +16,7 @@ def thetagrad(phi0):
     return out
 
 
-def euler(h, n, func1, ic1, func2=None, ic2=None):
+def euler(stop, h, n, func1, ic1, func2=None, ic2=None):
     """
     Function solve the Lane-Emden equation for a given n
 
@@ -29,10 +29,10 @@ def euler(h, n, func1, ic1, func2=None, ic2=None):
     :return: array of xi values and their corresponding theta values
     """
 
-    xivalues = np.arange(0, 5+h, h)
+    xivalues = np.arange(0, stop+h, h)
     steps = len(xivalues)
-    thetasol = np.arange(0, 5+h, h)
-    phisol = np.arange(0, 5+h, h)
+    thetasol = np.arange(0, stop+h, h)
+    phisol = np.arange(0, stop+h, h)
     # defining inital conditions
     thetasol[0] = ic2
     phisol[0] = ic1
@@ -45,26 +45,28 @@ def euler(h, n, func1, ic1, func2=None, ic2=None):
     return xivalues, thetasol
 
 
-# output0 = euler(0.001, 0, phigrad, 0, thetagrad, 1)
-# output1 = euler(0.001, 1, phigrad, 0, thetagrad, 1)
-# output5 = euler(0.001, 5, phigrad, 0, thetagrad, 1)
+# output0 = euler(5, 0.001, 0, phigrad, 0, thetagrad, 1)
+# output1 = euler(5, 0.001, 1, phigrad, 0, thetagrad, 1)
+# output5 = euler(5, 0.001, 5, phigrad, 0, thetagrad, 1)
 # plt.plot(output0[0], output0[1], label='n=0')
 # plt.plot(output1[0], output1[1], label='n=1')
 # plt.plot(output5[0], output5[1], label='n=5')
-#
+
+# goto = 35
 # for n in np.arange(0, 5.5, 0.5):
-#     xiValues, thetaSol = euler(0.001, n, phigrad, 0, thetagrad, 1)
+#     xiValues, thetaSol = euler(goto, 0.001, n, phigrad, 0, thetagrad, 1)
 #     nLabel = "$n=" + str(n) + "$ with Euler"
 #     plt.plot(xiValues, thetaSol, label=nLabel)
 #
 # plt.legend()
-# plt.hlines(0, 0, 5, color='black', linestyles='--')
+# plt.hlines(0, 0, goto, color='black', linestyles='--')
 # plt.title('Euler Lane-Emden')
 # plt.xlabel(r'$\xi$')
 # plt.ylabel(r'$\theta$')
+# plt.ylim([-1, 1.2])
 # plt.show()
 
 def plot(n):
-    xiValues, thetaSol = euler(0.001, n, phigrad, 0, thetagrad, 1)
-    nLabel = "$n=" + str(n) + "$ with Euler"
-    plt.plot(xiValues, thetaSol, label=nLabel)
+     xiValues, thetaSol = euler(5, 0.001, n, phigrad, 0, thetagrad, 1)
+     nLabel = "$n=" + str(n) + "$ with Euler"
+     plt.plot(xiValues, thetaSol, label=nLabel)

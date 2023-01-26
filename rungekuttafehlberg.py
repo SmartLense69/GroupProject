@@ -108,4 +108,4 @@ def plot(n):
 
     # Plot
     nLabel = "$n=" + str(n) + "$ with RKF"
-    plt.plot(xi, theta, label=nLabel, linestyle='dashed')
+    plt.plot(xi, theta, label=nLabel)
