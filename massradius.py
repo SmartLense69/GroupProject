@@ -26,6 +26,13 @@ def _tov(r, P, m, G, c, K, n):
         * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
+def _pressureFunction(rho, K, n, P=None):
+    _x = (1.0088e-2)*np.cbrt(rho/2)
+    return 1/(8*(np.pi**2))*(_x * ((2*_x**2)/(3) - 1)
+                             * np.sqrt(_x**2 + 1) +
+                             np.ln(_x + np.sqrt(1 + _x**2)))
+
+
 def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
     _N = 1.5
 
