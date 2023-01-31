@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import rungekutta4 as rk4
 from scipy.interpolate import CubicSpline as cs
 
+
 def _stateFunction(K, n, P=None, rho=None):
     if P != None:
         return (P / K) ** (n / (n + 1))
@@ -33,14 +34,34 @@ def _pressureFunction(rho):
                              np.ln(_x + np.sqrt(1 + _x**2)))
 
 
-def _getRho(P, rhoMin=0, rhoMax=1e+6, rhoNum=1000):
+def _getRhoSpline(rhoMin=1e+6, rhoMax=1e+9, rhoNum=1000):
     _rho = np.linspace(rhoMin, rhoMax, rhoNum)
     _pressure = _pressureFunction(_rho)
 
     # Switch x and f of a function f(x),
     # so cs returns x for a certain f(x)
     _cubicSpline = cs(_pressure, _rho, extrapolate=False)
-    return _cubicSpline(P)
+    return _cubicSpline
+
+
+def _getRho(P, cubicSpline=None, *args):
+    if cubicSpline is not None:
+        return cubicSpline(P)
+    else:
+        cubicSpline = _getRhoSpline(*args)
+        return cubicSpline(P)
+
+
+def _massContinuity2(r, P, *args):
+    _cs = _getRhoSpline(*args)
+    return 4 * np.pi * r ** 2 * _getRho(P, _cs)
+
+
+def _tov2(r, P, m, G, c, _cs):
+    return - ((G * m * _cs(P)) / r ** 2) \
+        * (1 + P / (_cs(P) * c ** 2)) \
+        * (1 + (4 * np.pi * r ** 3 * P) / (m * c ** 2)) \
+        * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
 def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
@@ -55,6 +76,8 @@ def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
     # Index 1 is mass
 
     _massRadiusArray = np.zeros((2, _size))
+    _cs = _getRhoSpline(rhoMin, rhoMax, rhoNum)
+    
     for i in range(_size):
         _r, _P, _m = rk4.rungekutta4(_massContinuity, _tov, 2e10,
                                      1, _rhoValues[i], 6.67e-8, 3e10, 1e13, _N, 1e5)
