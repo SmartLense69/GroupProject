@@ -85,30 +85,30 @@ def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *ar
     return (r, P, m)
 
 # outputs for different values of n
-n_list = [1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'k']
+n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'k', 'gray']
 
-# # plot configs
-# plt.figure(figsize=(12, 8))
-#
-# for n, c in zip(n_list, colours):
-#
-#     # run RK4
-#     r, P, m = rungekutta4(masscont, tov, 2e8, 1, 1e9, 6.67e-8, 3e10, 1e13, n, 1e4)
-#     print('n:', n, 'R:', r[-1], 'M:', m[-1])
-#
-#     # switch to density
-#     rho = statefunc(5e11, n, P=P)
-#
-#     # plot curve
-#     plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n))
-#
-# # plot configs
-# plt.title('RK4 hydrostatic')
-# plt.xlabel('r')
-# plt.ylabel(r'$\rho$')
-# plt.legend()
-# plt.show()
+# plot configs
+plt.figure(figsize=(12, 8))
+
+for n, c in zip(n_list, colours):
+
+    # run RK4
+    r, P, m = rungekutta4(masscont, tov, statefunc, 2e9, 1, 1e9, 6.67e-8, 3e10, 1e13, n, 1e4)
+    print('n:', n, 'R:', r[-1], 'M:', m[-1])
+
+    # switch to density
+    rho = statefunc(5e11, n, P=P)
+
+    # plot curve
+    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n))
+
+# plot configs
+plt.title('RK4 hydrostatic')
+plt.xlabel('r')
+plt.ylabel(r'$\rho$')
+plt.legend()
+plt.show()
 
 
 """
