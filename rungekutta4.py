@@ -77,6 +77,8 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
             m = m[:i]
             break
 
+        print(i)
+
     return (r, P, m)
 
 # outputs for different values of n
