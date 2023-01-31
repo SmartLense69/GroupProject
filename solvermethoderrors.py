@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as optimize
 import euler as eu
 import rungekutta4lane as rk4
 import rungekuttafehlberg as rukufe
@@ -19,7 +20,6 @@ def analytical5(xi):
 
 
 # absolute errors with varying h
-
 # range of step sizes to test
 testh = [1, 1e-1, 5e-1, 1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4] #, 1e-5, 5e-5, 1e-6]
 # testh = np.arange(1e-6, 1e-1, 5e-5)
@@ -83,15 +83,68 @@ for i in count:
     rkfourerror5[i] = absrkfour5
     rkferror5[i] = absrkf5
 
+# fitting the error plots to dependence on h
+# fitting function
+def fitlinear(x, a, b):
+    return a*x + b
+
+# defining range of values to plot fit function over, sufficient to be smooth line
+fith_smooth = np.linspace(min(testh), max(testh), 1000)
+
+# euler fits
+# n = 0
+euler0_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererror0), p0=[1, 1])
+eulererrorfit0 = fitlinear(np.log10(fith_smooth),euler0_params[0], euler0_params[1])
+print("Error \u221d h^{0:.3g}".format(euler0_params[0]))
+# n = 1
+euler1_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererror1), p0=[1, 1])
+eulererrorfit1 = fitlinear(np.log10(fith_smooth),euler1_params[0], euler1_params[1])
+print("Error \u221d h^{0:.3g}".format(euler1_params[0]))
+# n = 5
+euler5_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererror5), p0=[1, 1])
+eulererrorfit5 = fitlinear(np.log10(fith_smooth),euler5_params[0], euler5_params[1])
+print("Error \u221d h^{0:.3g}".format(euler5_params[0]))
+
+# rk4 fits
+# n = 0
+rk40_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkfourerror0), p0=[1, 1])
+rk4errorfit0 = fitlinear(np.log10(fith_smooth),rk40_params[0], rk40_params[1])
+print("Error \u221d h^{0:.3g}".format(rk40_params[0]))
+# n = 1
+rk41_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkfourerror1), p0=[1, 1])
+rk4errorfit1 = fitlinear(np.log10(fith_smooth),rk41_params[0], rk41_params[1])
+print("Error \u221d h^{0:.3g}".format(rk41_params[0]))
+# n = 5
+rk45_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkfourerror5), p0=[1, 1])
+rk4errorfit5 = fitlinear(np.log10(fith_smooth),rk45_params[0], rk45_params[1])
+print("Error \u221d h^{0:.3g}".format(rk45_params[0]))
+
+# rkf fits
+# n = 0
+rkf0_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferror0), p0=[1, 1])
+rkferrorfit0 = fitlinear(np.log10(fith_smooth),rkf0_params[0], rkf0_params[1])
+print("Error \u221d h^{0:.3g}".format(rkf0_params[0]))
+# n = 1
+rkf1_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferror1), p0=[1, 1])
+rkferrorfit1 = fitlinear(np.log10(fith_smooth),rkf1_params[0], rkf1_params[1])
+print("Error \u221d h^{0:.3g}".format(rkf1_params[0]))
+# n = 5
+rkf5_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferror5), p0=[1, 1])
+rkferrorfit5 = fitlinear(np.log10(fith_smooth),rkf5_params[0], rkf5_params[1])
+print("Error \u221d h^{0:.3g}".format(rkf5_params[0]))
+
 # creating plot of all the results
-plt.figure(figsize=(10, 4), layout='constrained')
+plt.figure(figsize=(12, 4), layout='constrained')
 plt.suptitle('Error Plots Running to 1')
 
 # plotting the n=0 errors against step size for euler and rk4
 plt.subplot(131)
 plt.scatter(testh, eulererror0, label='Euler')
+plt.plot(fith_smooth, 10**eulererrorfit0, label='Euler Fit')
 plt.scatter(testh, rkfourerror0, label='RK4')
+plt.plot(fith_smooth, 10**rk4errorfit0, label='RK4 Fit')
 plt.scatter(testh, rkferror0, label='RKF')
+plt.plot(fith_smooth, 10**rkferrorfit0, label='RKf Fit')
 plt.legend()
 plt.xscale('log')
 plt.yscale('log')
@@ -102,8 +155,11 @@ plt.title('n = 0')
 # plotting the n=1 errors against step size for euler and rk4
 plt.subplot(132)
 plt.scatter(testh, eulererror1, label='Euler')
+plt.plot(fith_smooth, 10**eulererrorfit1, label='Euler Fit')
 plt.scatter(testh, rkfourerror1, label='RK4')
+plt.plot(fith_smooth, 10**rk4errorfit1, label='RK4 Fit')
 plt.scatter(testh, rkferror1, label='RKF')
+plt.plot(fith_smooth, 10**rkferrorfit1, label='RKf Fit')
 plt.legend()
 plt.xscale('log')
 plt.yscale('log')
@@ -114,8 +170,11 @@ plt.title('n = 1')
 # plotting the n=5 errors against step size for euler and rk4
 plt.subplot(133)
 plt.scatter(testh, eulererror5, label='Euler')
+plt.plot(fith_smooth, 10**eulererrorfit5, label='Euler Fit')
 plt.scatter(testh, rkfourerror5, label='RK4')
+plt.plot(fith_smooth, 10**rk4errorfit5, label='RK4 Fit')
 plt.scatter(testh, rkferror5, label='RKF')
+plt.plot(fith_smooth, 10**rkferrorfit5, label='RKf Fit')
 plt.legend()
 plt.xscale('log')
 plt.yscale('log')
