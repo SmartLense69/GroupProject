@@ -6,6 +6,7 @@ from scipy.interpolate import CubicSpline
 
 CS: CubicSpline = None
 
+
 def _stateFunction(K, n, P=None, rho=None):
     if P != None:
         return (P / K) ** (n / (n + 1))
@@ -28,7 +29,7 @@ def _tov(r, P, m, G, c, K, n):
         * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
-def _pressureFunction(rho):
+def _pressureFunction(K=None, n=None, rho=None):
     _x = (1.0088e-2)*np.cbrt(rho/2)
     return 1/(8*(np.pi**2))*(_x * ((2*_x**2)/(3) - 1)
                              * np.sqrt(_x**2 + 1) +
@@ -37,7 +38,7 @@ def _pressureFunction(rho):
 
 def _getRhoSpline(rhoMin=1e+6, rhoMax=1e+9, rhoNum=1000):
     _rho = np.linspace(rhoMin, rhoMax, rhoNum)
-    _pressure = _pressureFunction(_rho)
+    _pressure = _pressureFunction(rho=_rho)
 
     # Switch x and f of a function f(x),
     # so cs returns x for a certain f(x)
@@ -80,7 +81,7 @@ def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=100):
     CS = cubicSpline
 
     for i in range(_size):
-        _r, _P, _m = rk4.rungekutta4(_massContinuity2, _tov2, 2e10,
+        _r, _P, _m = rk4.rungekutta4(_massContinuity2, _tov2, _pressureFunction, 2e10,
                                      1, _rhoValues[i], 6.67e-8, 3e10, 1e13, _N, 1e7, CS)
 
         _massRadiusArray[0, i] = _r[-1]
