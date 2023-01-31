@@ -22,7 +22,7 @@ def tov(r, P, m, G, c, K, n):
     return - ( (G * m * statefunc(K, n, P=P)) / r**2 ) * ( 1 + P / (statefunc(K, n, P=P) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
 
-def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
+def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 
     # constants
     c = np.array([None, 0, 1/2, 1/2, 1])
@@ -76,6 +76,8 @@ def rungekutta4(masscont, starfunc, r1, m0, rho0, G, c0, K, n, h, *arg):
             r = r[:i]
             m = m[:i]
             break
+
+        print(i)
 
     return (r, P, m)
 

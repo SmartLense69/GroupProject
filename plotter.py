@@ -35,6 +35,7 @@ def plotLaneEmdenAnalytical(n, num=1000):
             val = 1 / (np.sqrt(1 + ((xi ** 2) / 3)))
             plt.plot(xi, val, label="Analytical solution for n=5")
 
+
 def plotEnd(xMin=0, xMax=1):
     plt.xlim(xMin, xMax)
     plt.grid()
