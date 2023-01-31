@@ -10,7 +10,7 @@ def statefunc(K, n, P=None, rho=None):
         return K * rho**(1 + 1/n)
 
 
-def masscont(r, P, K, n):
+def masscont(r, P, K=None, n=None):
     return 4 * np.pi * r**2 * statefunc(K, n, P=P)
 
 
@@ -19,7 +19,10 @@ def hydro(r, P, m, G, c, K, n):
 
 
 def tov(r, P, m, G, c, K, n):
-    return - ( (G * m * statefunc(K, n, P=P)) / r**2 ) * ( 1 + P / (statefunc(K, n, P=P) * c**2) ) * ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * ( 1 - (2 * G * m) / (r * c**2) )**(-1)
+    return - ( (G * m * statefunc(K, n, P=P)) / r**2 ) * \
+        ( 1 + P / (statefunc(K, n, P=P) * c**2) ) * \
+        ( 1 + (4 * np.pi * r**3 * P) / (m * c**2) ) * \
+        ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
 
 def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *arg):
