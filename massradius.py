@@ -2,7 +2,7 @@ import eulertovdowhile as evw
 import numpy as np
 import matplotlib.pyplot as plt
 import rungekutta4 as rk4
-
+from scipy.interpolate import CubicSpline as cs
 
 def _stateFunction(K, n, P=None, rho=None):
     if P != None:
@@ -26,11 +26,21 @@ def _tov(r, P, m, G, c, K, n):
         * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
-def _pressureFunction(rho, K, n, P=None):
+def _pressureFunction(rho):
     _x = (1.0088e-2)*np.cbrt(rho/2)
     return 1/(8*(np.pi**2))*(_x * ((2*_x**2)/(3) - 1)
                              * np.sqrt(_x**2 + 1) +
                              np.ln(_x + np.sqrt(1 + _x**2)))
+
+
+def _getRho(P, rhoMin=0, rhoMax=1e+6, rhoNum=1000):
+    _rho = np.linspace(rhoMin, rhoMax, rhoNum)
+    _pressure = _pressureFunction(_rho)
+
+    # Switch x and f of a function f(x),
+    # so cs returns x for a certain f(x)
+    _cubicSpline = cs(_pressure, _rho, extrapolate=False)
+    return _cubicSpline(P)
 
 
 def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=1000):
