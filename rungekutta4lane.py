@@ -5,7 +5,7 @@ def phigrad(xi, phi, n, theta):
     if xi==0:
         out = 0
     else:
-        out = ((-2/xi)*phi) - theta**n
+        out = -((2/xi)*phi + theta**n)
     return out
 
 def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
@@ -39,7 +39,7 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
         # calculate the values k1, j1 through k4, j4
         # find phi using RK4 method
         # calculate the values k1, j1 through k4, j4
-        j1 = h * func(xi[i - 1] + c[1] * h, phi[i - 1], n, theta[i - 1], *arg)
+        j1 = h * func(xi[i - 1], phi[i - 1], n, theta[i - 1], *arg)
         k1 = h * (phi[i - 1])
 
         j2 = h * func(xi[i - 1] + c[2] * h, phi[i - 1] + a[2, 1] * j1, n, theta[i - 1] + a[2, 1] * k1, *arg)
@@ -62,17 +62,15 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
     return (xi, theta)
 
 # outputs for different values of n
-n_list = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k', 'gray']
+n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
 
 
 def plot(n):
     xiValues, thetaSol = rungekutta4lane(phigrad, 2.7, 0, 1, n, 0.01)
-
     nLabel = "$n=" + str(n) + "$ with RK4"
     plt.plot(xiValues, thetaSol, label=nLabel)
 
-### Comment out here before end of day
 # plot configs
 plt.figure(figsize=(12, 8))
 
@@ -80,6 +78,10 @@ for n, c in zip(n_list, colours):
 
     # run RK algorithm
     xi, theta = rungekutta4lane(phigrad, 35, 0, 1, n, 0.01)
+
+    # switch parameters
+    rho = 1e9*theta**n
+    r = xi * np.sqrt((1e13 * (n+1) * rho**((1/n) - 1))/(4*np.pi*6.67e-8))
 
     # plot curve
     plt.plot(xi, theta, c=c, label='n={0}'.format(n))

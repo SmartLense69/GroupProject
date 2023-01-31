@@ -58,11 +58,12 @@ out = rungekutta4(0.0001, 10)
 def an(in_x):
     return np.sin(in_x)
 
-plt.plot(out[0], out[1])
-plt.plot(out[0], an(out[0]))
+plt.plot(out[0], out[1], label='num')
+plt.plot(out[0], an(out[0]), label='ana')
+plt.legend()
 plt.show()
 
-testh = [1, 5e-1, 1e-1, 5e-2,1e-2, 5e-3, 1e-3, 5e-4, 1e-4 ]
+testh = [1, 5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
 errors = np.zeros(len(testh))
 count = np.arange(0, len(testh), 1)
 for i in count:

@@ -11,7 +11,7 @@ def diff2(inPhi):
     return inPhi
 
 
-A = np.asarray([
+A0 = np.asarray([
     [None, None, None, None, None, None, None],
     [None, None, None, None, None, None, None],
     [None, (1 / 5), None, None, None, None, None],
@@ -21,6 +21,16 @@ A = np.asarray([
     [None, (9017 / 3168), (-355 / 33), (46732 / 5247), (49 / 176), (-5103 / 18656), None],
     [None, (35 / 384), 0, (500 / 1113), (125 / 192), (-2187 / 6784), (11 / 84)]
 ], dtype=np.float64)
+
+A = np.asarray([
+    [None, None, None, None, None, None, None],
+    [None, None, None, None, None, None, None],
+    [None, (1 / 4), None, None, None, None, None],
+    [None, (3 / 32), (9 / 32), None, None, None, None],
+    [None, (1932 / 2197), (-7200 / 2197), (7296 / 2197), None, None, None],
+    [None, (439 / 216), (-8), (3680 / 513), (-845 / 4104), None, None],
+    [None, (-8 / 27), (2), (-3544 / 2565), (1859 / 4104), (-11 / 40), None],
+], dtype=np.float64)
 """
 "a" Coefficients for Runge-Kutta-Fehlberg.
 Index the array like the index mentioned in the math scripts, i.e.
@@ -28,8 +38,11 @@ first element starts at 1.
 This was made to make it easier to copy the algorithm.
 """
 
-B = np.asarray(
+B0 = np.asarray(
     [None, (35 / 384), 0, (500 / 1113), (125 / 192), (-2187 / 6784), (11 / 84), 0], dtype=np.float64)
+
+B = np.asarray(
+    [None, (16 / 135), 0, (6656 / 12825), (28561 / 56430), (-9 / 50), (2 / 55)], dtype=np.float64)
 """
 "b" Coefficients for Runge-Kutta-Fehlberg.
 """
@@ -40,8 +53,11 @@ Bm = np.asarray(
 "b*" Coefficients for Runge-Kutta-Fehlberg.
 """
 
-C = np.asarray(
+C0 = np.asarray(
     [None, 0, (1 / 5), (3 / 10), (4 / 5), (8 / 9), 1, 1], dtype=np.float64)
+
+C = np.asarray(
+    [None, 0, (1 / 4), (3 / 8), (12 / 13), 1, (1 / 2)], dtype=np.float64)
 """
 "c" Coefficients for Runge-Kutta-Fehlberg.
 """

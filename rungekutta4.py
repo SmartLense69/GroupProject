@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import rungekutta4lane as rk4l
 
 
 # this is so that the state functions can be varied
@@ -86,7 +87,7 @@ def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *ar
 
 # outputs for different values of n
 n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
-colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'k', 'gray']
+colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
 
 # plot configs
 plt.figure(figsize=(12, 8))
