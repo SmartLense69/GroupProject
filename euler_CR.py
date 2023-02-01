@@ -3,21 +3,20 @@ import diffequation as de
 
 # Raise exceptions instead of runtime warnings.
 # Introduced so debugging could be easier.
-# np.seterr(all='raise')
+np.seterr(all='raise')
 
 
 def euler2Diff(diff1: de.DifferentialEquation, diff2: de.DifferentialEquation,
-                  stepSize: float, stop: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+               stepSize: float, stop: float, yLim=None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Solves two sets of decoupled differential equations (DE) from
     a 2nd order DEs.
     Example: Let the first differential euqation be x=x'(t) and the second  y=y'(x)
     :param diff1: First decoupled DE.
     :param diff2: Second decoupled DE.
-    :param stepSize: Step size of the algorithm. Increase for more accurate results
-    within the end of interval defined by parameter `stop`.
-    :param stop: To which time the algorithm should run.
-    For better results at the end of a solution, increase `stop`.
+    :param stepSize: Step size of the algorithm. Increase for more accurate results within the end of interval.
+    :param stop: To which time the algorithm should run. For better results at the end of a solution, increase `stop`.
+    :param yLim: When should the function stop if the solution is smaller than ylim.
     :return: Tuple, with t, x and y as solution
     """
 
@@ -26,14 +25,25 @@ def euler2Diff(diff1: de.DifferentialEquation, diff2: de.DifferentialEquation,
     _xValues = np.arange(0, stop+stepSize, stepSize)
     _yValues = np.arange(0, stop+stepSize, stepSize)
 
-    # Defining inital conditions
-    _yValues[0] = diff2.iniC
+    # Defining initial conditions
     _xValues[0] = diff1.iniC
+    _yValues[0] = diff2.iniC
 
-    # Go through the algorithm
-    for i in range(1, len(_tValues)):
-        _xValues[i] = _xValues[i-1] + stepSize*diff2.func(_tValues[i-1], _yValues[i-1], _xValues[i-1])
-        _yValues[i] = _yValues[i-1] + stepSize*diff2.func(_xValues[i-1])
+    # Instead of asking if a ylim is None every loop,
+    # do different loops depending on the optional parameters
+    if yLim is None:
+        for i in range(1, len(_tValues)):
+            _xValues[i] = _xValues[i - 1] + stepSize * diff1.func(_tValues[i - 1], _yValues[i - 1], _xValues[i - 1])
+            _yValues[i] = _yValues[i - 1] + stepSize * diff2.func(_xValues[i])
+    else:
+        for i in range(1, len(_tValues)):
+            _xValues[i] = _xValues[i - 1] + stepSize * diff1.func(_tValues[i - 1], _yValues[i - 1], _xValues[i - 1])
+            _yValues[i] = _yValues[i - 1] + stepSize * diff2.func(_xValues[i])
+            if _yValues[i] < yLim:
+                _tValues = _tValues[:i]
+                _xValues = _xValues[:i]
+                _yValues = _yValues[:i]
+                break
 
     return _tValues, _xValues, _yValues
 

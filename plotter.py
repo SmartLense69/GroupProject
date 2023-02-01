@@ -37,7 +37,7 @@ def plotLaneEmdenAnalytical(n, num=1000):
 
 
 def plotEnd(xMin=0, xMax=1):
-    plt.xlim(xMin, xMax)
+    #plt.xlim(xMin, xMax)
     plt.grid()
     plt.legend()
     plt.show()
