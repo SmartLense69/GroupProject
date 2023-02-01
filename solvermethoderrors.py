@@ -23,9 +23,9 @@ anaxi = np.arange(1e-12, 1, 0.0001)
 h = 0.001
 
 # getting results from the euler scheme
-euler0 = eu.euler(5, h, 0, eu.phigrad, 0, eu.thetagrad, 1)
-euler1 = eu.euler(5, h, 1, eu.phigrad, 0, eu.thetagrad, 1)
-euler5 = eu.euler(5, h, 5, eu.phigrad, 0, eu.thetagrad, 1)
+euler0 = eu.euler(5, h, 0, eu._phigrad, 0, eu._thetagrad, 1)
+euler1 = eu.euler(5, h, 1, eu._phigrad, 0, eu._thetagrad, 1)
+euler5 = eu.euler(5, h, 5, eu._phigrad, 0, eu._thetagrad, 1)
 
 # getting results fron RK4 scheme
 rkfour0 = rk4.rungekutta4lane(rk4.phigrad, 2.7, 0, 1, 0, h)
@@ -97,7 +97,7 @@ rkfourerror0 = np.zeros(len(testh))
 count = np.arange(0, len(testh), 1)
 for i in count:
     h = testh[i]
-    erroreuler0 = eu.euler(1, h, 0, eu.phigrad, 0, eu.thetagrad, 1)
+    erroreuler0 = eu.euler(1, h, 0, eu._phigrad, 0, eu._thetagrad, 1)
     errorrk40 = rk4.rungekutta4lane(rk4.phigrad, 1, 0, 1, 0, h)
     abseuler0 = np.abs(analytical0(erroreuler0[0][len(erroreuler0[0])-1]) - erroreuler0[1][len(erroreuler0[1])-1])
     absrkfour0 = np.abs(analytical0(errorrk40[0][len(errorrk40[0])-1]) - errorrk40[1][len(errorrk40[1])-1])

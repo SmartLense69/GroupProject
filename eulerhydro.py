@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 np.seterr(all='raise')
 
-
 # this is so that the state functions can be varied
 def statefunc(K, n, P=None, rho=None):
     if P != None:

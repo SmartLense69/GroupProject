@@ -1,19 +1,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import diffequation as de
+import euler_CR as eCR
 
 
-def phigrad(xi, n, theta0, phi0):
-
-    if xi == 0:
-        out = 0
-    else:
-        out = ((-2/xi)*phi0) - theta0**n
-    return out
+def _phigrad1(xi, theta0, phi0):
+    return ((-2/xi)*phi0) - theta0
 
 
-def thetagrad(phi0):
-    out = phi0
-    return out
+def _thetagrad(phi0):
+    return phi0
 
 
 def euler(stop, h, n, func1, ic1, func2=None, ic2=None):
@@ -67,6 +63,11 @@ def euler(stop, h, n, func1, ic1, func2=None, ic2=None):
 # plt.show()
 
 def plot(n):
-     xiValues, thetaSol = euler(5, 0.001, n, phigrad, 0, thetagrad, 1)
-     nLabel = "$n=" + str(n) + "$ with Euler"
-     plt.plot(xiValues, thetaSol, label=nLabel)
+    diff1 = de.DifferentialEquation(_thetagrad, 1)
+    diff2 = de.DifferentialEquation(_phigrad1, 0)
+
+    _xiValues, _thetaValues, _phiValues = eCR.euler2Diff(diff1, diff2, 0.001, 5)
+
+    # xiValues, thetaSol = euler(5, 0.001, n, _phigrad, 0, _thetagrad, 1)
+    nLabel = "$n=" + str(n) + "$ with Euler"
+    plt.plot(_xiValues, _thetaValues, label=nLabel)
