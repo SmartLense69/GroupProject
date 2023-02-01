@@ -25,22 +25,21 @@ def tov(r, P, m, G, c, K, n):
 def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *arg):
 
     # constants
-    c = np.array([None, 0, 1/2, 1/2, 1])
+    c = np.array([None, 0, 1/2, 1/2, 1], dtype=np.float128)
     a = np.array([[None, None, None, None],
                  [None, None, None, None],
                  [None, 1/2, None, None],
                  [None, 0, 1/2, None],
-                 [None, 0, 0, 1]])
-    b = np.array([None, 1/6, 1/3, 1/3, 1/6])
+                 [None, 0, 0, 1]], dtype=np.float128)
+    b = np.array([None, 1/6, 1/3, 1/3, 1/6], dtype=np.float128)
 
     # initialise the arrays to be used
-
-    r = np.arange(1, r1 + h, h)
+    r = np.linspace(1, r1, h, dtype=np.float128)
     # number of time steps
     steps = np.shape(r)[0]
 
-    m = np.zeros(steps)
-    P = np.zeros(steps)
+    m = np.zeros(steps, dtype=np.float128)
+    P = np.zeros(steps, dtype=np.float128)
 
     # set the initial conditions
     m[0] = m0
@@ -76,8 +75,6 @@ def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *ar
             r = r[:i]
             m = m[:i]
             break
-
-        print(i)
 
     return (r, P, m)
 
