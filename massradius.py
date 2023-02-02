@@ -38,21 +38,17 @@ def _pressureFunction(K=None, n=None, rho=None):
     return _P
 
 
-def generateSplineData(rhoMinExp=2, rhoMaxExp=15, rhoAdaptStepNum=100):
-    csvArray = np.zeros(shape=((rhoMaxExp - rhoMinExp) * 100, 2))
-    i = 0
-    for n in range(rhoMinExp, rhoMaxExp):
-        _rho = np.linspace(1 * (10 ** (n - 2)), 1 * (10 ** n), rhoAdaptStepNum)
-        _pressure = _pressureFunction(rho=_rho)
-        for rho, p in zip(_rho, _pressure):
-            if i >= csvArray.shape[0]:
-                i = 0
-                break
-            csvArray[i, 0] = rho
-            csvArray[i, 1] = p
-            print(i)
-            i += 1
-    np.savetxt("EoS_Spline_Data.csv", csvArray, delimiter='\t')
+def generateSplineData(rhoMinExp=2, rhoMaxExp=15, rhoAdaptStepNum=2):
+    eoSFile = open('EoS_Spline_Data.csv', 'a')
+    for n in range(rhoMinExp, rhoMaxExp - rhoMinExp + 1, 1):
+        _rho = np.linspace(1 * (10 ** n), 1 * (10 ** (n+1)), (10**rhoAdaptStepNum-10), endpoint=False)
+        csvArray = np.zeros((2, _rho.size))
+        csvArray[0] = _rho
+        csvArray[1] = _pressureFunction(rho=_rho)
+        np.savetxt(eoSFile, csvArray.transpose(), delimiter='\t')
+
+    eoSFile.close()
+
 
 def _getRhoSpline(rhoMin=1e+6, rhoMax=1e+9, rhoNum=100):
     _rho = np.linspace(rhoMin, rhoMax, rhoNum)
@@ -83,7 +79,7 @@ def _tov2(r, P, m, G, c, K=None, n=None, cs=CS, *args):
         * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
-def plotMassRadius(rhoMin=1e6, rhoMax=5e10, rhoNum=1000):
+def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=100, stepSize=1e7):
     _N = 1.5
 
     plt.rcParams['font.size'] = '14'
@@ -95,12 +91,16 @@ def plotMassRadius(rhoMin=1e6, rhoMax=5e10, rhoNum=1000):
     # Index 1 is mass
 
     _massRadiusArray = np.zeros((2, _size))
-    cubicSpline = _getRhoSpline(rhoMin, rhoMax, rhoNum)
+    cubicSplineData = np.loadtxt("EoS_Spline_Data.csv", delimiter='\t').transpose()
+    cubicSpline = CubicSpline(cubicSplineData[1], cubicSplineData[0])
+    _pressureFunction = np.linspace(1e15, 1e19, 1000)
+    plt.plot(_pressureFunction, cubicSpline(_pressureFunction))
+    plt.show()
     CS = cubicSpline
 
     for i in range(_size):
         _r, _P, _m = rk4.rungekutta4(_massContinuity2, _tov2, _pressureFunction, 2e10,
-                                     1, _rhoValues[i], 6.67e-8, 3e10, 1e13, _N, 1e6, CS)
+                                     1, _rhoValues[i], 6.67e-8, 3e10, 1e13, _N, stepSize, CS)
 
         _massRadiusArray[0, i-1] = _r[-1]
         _massRadiusArray[1, i-1] = _m[-1]

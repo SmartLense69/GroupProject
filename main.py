@@ -4,9 +4,9 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    mr.generateSplineData()
+    # mr.generateSplineData()
 
-    # mr.plotMassRadius()
+    mr.plotMassRadius()
 
     # n = 5
     # plotEuler = True
