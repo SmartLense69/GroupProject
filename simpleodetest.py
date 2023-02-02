@@ -31,8 +31,8 @@ def rungekutta4(h, stop):
     z = np.zeros(steps)
 
     # setting initial conditions
-    y[0] = 1
-    z[0] = 0
+    y[0] = 0
+    z[0] = 1
 
     for i in range(1, steps):
         # calculate RK4 coefficients
@@ -53,11 +53,11 @@ def rungekutta4(h, stop):
 
     return x, y
 
-out = rungekutta4(0.0001, 0.1)
+out = rungekutta4(0.0001, 10)
 
 # analytical solution
 def an(in_x):
-    return np.cos(in_x)
+    return np.sin(in_x)
 
 
 plt.plot(out[0], out[1], label='num')
@@ -65,7 +65,7 @@ plt.plot(out[0], an(out[0]), label='ana')
 plt.legend()
 plt.show()
 
-testh = np.array([1, 5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4])
+testh = np.array([5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4])
 errors = np.zeros(len(testh))
 count = np.arange(0, len(testh), 1)
 for i in count:

@@ -186,7 +186,7 @@ def analytical5(xi):
 
 # rewritting with loops
 
-testh = [1, 1e-1, 5e-1, 1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4] #, 1e-5, 5e-5, 1e-6]
+testh = [1e-1, 5e-1, 1e-2, 5e-2, 1e-3, 5e-3, 1e-4, 5e-4] #, 1e-5, 5e-5, 1e-6]
 
 # fitting function
 def fitlinear(x, a, b):
@@ -207,6 +207,7 @@ for j, index, ana in zip(js, indices, analyt):
     # euler
     eulererrors = np.zeros(len(testh))
     rk4errors = np.zeros(len(testh))
+    rkferrors = np.zeros(len(testh))
 
     for i in range(0, len(testh)):
         h = testh[i]
@@ -219,19 +220,31 @@ for j, index, ana in zip(js, indices, analyt):
         abserrorrk4at1 = np.abs(ana(rk4to1[0][-1]) - rk4to1[1][-1])
         rk4errors[i] = abserrorrk4at1
 
+        rkfto1 = rukufe.rkf(rukufe.de.DifferentialEquation(rukufe.diff1, 0), rukufe.de.DifferentialEquation(rukufe.diff2, 1), h, 1, j)
+        abserrorrkfat1 = np.abs(ana(rkfto1[0][-1]) - rkfto1[1][-1])
+        rkferrors[i] = abserrorrkfat1
+
     euler_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererrors), p0=[1, 1])
     eulererrorfit = fitlinear(np.log10(fith_smooth), euler_params[0], euler_params[1])
     print("Error \u221d h^{0:.3g}".format(euler_params[0]))
     rk4_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rk4errors), p0=[1, 1])
     rk4errorfit = fitlinear(np.log10(fith_smooth), rk4_params[0], rk4_params[1])
     print("Error \u221d h^{0:.3g}".format(rk4_params[0]))
+    rkf_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferrors), p0=[1, 1])
+    rkferrorfit = fitlinear(np.log10(fith_smooth), rkf_params[0], rkf_params[1])
+    print("Error \u221d h^{0:.3g}".format(rkf_params[0]))
 
     plt.subplot(1, 3, index)
 
     plt.scatter(testh, eulererrors, label='Euler')
     plt.plot(fith_smooth, 10 ** eulererrorfit, label='Euler Fit')
+
     plt.scatter(testh, rk4errors, label='RK4')
     plt.plot(fith_smooth, 10 ** rk4errorfit, label='RK4 Fit')
+
+    plt.scatter(testh, rkferrors, label='RKF')
+    plt.plot(fith_smooth, 10 ** rkferrorfit, label='RKF Fit')
+
     plt.legend()
     plt.xscale('log')
     plt.yscale('log')
