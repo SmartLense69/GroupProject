@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.optimize as optimize
 import euler as eu
-import rungekutta4lane as rk4
+import rungekutta4lane as rk4l
+import rungekutta4 as rk4
 import rungekuttafehlberg as rukufe
 
 # defining solved analytical solutions
@@ -215,8 +216,9 @@ for j, index, ana in zip(js, indices, analyt):
         abserroreulerat1 = np.abs(ana(eulerto1[0][len(eulerto1[0]) - 1]) - eulerto1[1][len(eulerto1[1]) - 1])
         eulererrors[i] = abserroreulerat1
 
-        rk4to1 = rk4.rungekutta4lane(rk4.phigrad, 3, 0, 1, j, h)
-        abserrorrk4at1 = np.abs(ana(rk4to1[0][-1]) - rk4to1[1][-1])
+        #rk4to1 = rk4.rungekutta4lane(rk4.phigrad, 3, 0, 1, j, h)
+        rk4to1 = rk4.rungekutta4(rk4.phigrad, rk4.thetagrad, rk4.statefunc, 3, 0, 1, j, h)
+        abserrorrk4at1 = np.abs(ana(rk4to1[0][-1]) - rk4to1[2][-1])
         rk4errors[i] = abserrorrk4at1
 
     euler_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererrors), p0=[1, 1])

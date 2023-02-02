@@ -6,15 +6,15 @@ def phigrad(r, m, P, K=None, n=None):
     xi = r
     phi = m
     theta = P
-    if xi==0:
+    if xi == 0:
         out = 0
     else:
         out = -((2/xi)*phi + theta**n)
     return out
 
 
-def thetagrad(r, m, P, G, c, K, n):
-    phi = P
+def thetagrad(r, m, P): #, G, c, K, n):
+    phi = m
     return phi
 
 
@@ -41,7 +41,7 @@ def tov(r, m, P, G, c, K, n):
         ( 1 - (2 * G * m) / (r * c**2) )**(-1)
 
 
-def rungekutta4(diffEq1, diffEq2, statefunc, t1, x0, y0, G, c0, K, n, h, *arg):
+def rungekutta4(diffEq1, diffEq2, statefunc, t1, x0, y0, n, h, *arg): #, G, c0, K, n, h, *arg):
 
     # constants
     #c = np.array([None, 0, 1/2, 1/2, 1])
@@ -54,7 +54,7 @@ def rungekutta4(diffEq1, diffEq2, statefunc, t1, x0, y0, G, c0, K, n, h, *arg):
 
     # initialise the arrays to be used
 
-    t = np.arange(1, t1 + h, h)
+    t = np.arange(0, t1 + h, h)
     # number of time steps
     steps = np.shape(t)[0]
 
@@ -73,23 +73,23 @@ def rungekutta4(diffEq1, diffEq2, statefunc, t1, x0, y0, G, c0, K, n, h, *arg):
 
         # find m using RK4 method
         # calculate the values k1, j1 through k4, j4
-        j1 = h * diffEq1(t[i - 1], x[i - 1], np.abs(y[i - 1]), K, n, *arg)
-        k1 = h * diffEq2(t[i - 1], x[i - 1], np.abs(y[i - 1]), G, c0, K, n, *arg)
+        j1 = h * diffEq1(t[i - 1], x[i - 1], y[i - 1], n=n, *arg) #, K, n, *arg)
+        k1 = h * diffEq2(t[i - 1], x[i - 1], y[i - 1]) #, G, c0, K, n, *arg)
 
-        j2 = h * diffEq1(t[i - 1] + 0.5*h, x[i - 1] + 0.5*j1, np.abs(y[i - 1]) + 0.5*k1, K, n, *arg)
-        k2 = h * diffEq2(t[i - 1] + 0.5*h, x[i - 1] + 0.5*j1, np.abs(y[i - 1]) + 0.5*k1, G, c0, K, n, *arg)
+        j2 = h * diffEq1(t[i - 1] + 0.5 * h, x[i - 1] + 0.5 * j1, y[i - 1] + 0.5 * k1, n=n, *arg) #, K, n, *arg)
+        k2 = h * diffEq2(t[i - 1] + 0.5 * h, x[i - 1] + 0.5 * j1, y[i - 1] + 0.5 * k1) #, G, c0, K, n, *arg)
 
-        j3 = h * diffEq1(t[i - 1] + 0.5*h, x[i - 1] + 0.5*j2, np.abs(y[i - 1]) + 0.5*k2, K, n, *arg)
-        k3 = h * diffEq2(t[i - 1] + 0.5*h, x[i - 1] + 0.5*j2, np.abs(y[i - 1]) + 0.5*k2, G, c0, K, n, *arg)
+        j3 = h * diffEq1(t[i - 1] + 0.5 * h, x[i - 1] + 0.5 * j2, y[i - 1] + 0.5 * k2, n=n, *arg) #, K, n, *arg)
+        k3 = h * diffEq2(t[i - 1] + 0.5 * h, x[i - 1] + 0.5 * j2, y[i - 1] + 0.5 * k2) #, G, c0, K, n, *arg)
 
-        j4 = h * diffEq1(t[i - 1] + h, x[i - 1] + j3, np.abs(y[i - 1]) + k3, K, n, *arg)
-        k4 = h * diffEq2(t[i - 1] + h, x[i - 1] + j3, np.abs(y[i - 1]) + k3, G, c0, K, n, *arg)
+        j4 = h * diffEq1(t[i - 1] + h, x[i - 1] + j3, y[i - 1] + k3, n=n, *arg) #, K, n, *arg)
+        k4 = h * diffEq2(t[i - 1] + h, x[i - 1] + j3, y[i - 1] + k3) #, G, c0, K, n, *arg)
 
         # find next value for m
-        x[i] = x[i - 1] + (j1 + 2*j2 + 2*j3 + j4)/6
+        x[i] = x[i - 1] + (j1 + 2 * j2 + 2 * j3 + j4) / 6
 
         # find next value for P
-        y[i] = np.abs(y[i - 1]) + (k1 + 2*k2 + 2*k3 + k4)/6
+        y[i] = y[i - 1] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
 
         if y[i]/y[0] < 1e-5:
             t = t[:i]
@@ -109,10 +109,7 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run RK4
-    xi, phi, theta = rungekutta4(phigrad, thetagrad, statefunc, 20, 0, 1, 6.67e-8, 3e10, 1e13, n, 0.01)
-    print(xi)
-    print(phi)
-    print(theta)
+    xi, phi, theta = rungekutta4(phigrad, thetagrad, statefunc, 35, 0, 1, n, 0.01) #6.67e-8, 3e10, 1e13, n, 0.01)
 
     # plot curve
     plt.plot(xi, theta, c=c, label='n={0}'.format(n))
@@ -128,6 +125,7 @@ for n, c in zip(n_list, colours):
     #plt.plot(r / np.max(r), rho / np.max(rho), c=c, label='n={0}'.format(n))
 
 # plot configs
+plt.hlines(0, 0, 35, color='k', linestyles='--')
 plt.title('RK4 hydrostatic/tov')
 plt.xlabel('r')
 plt.ylabel(r'$\rho$')
