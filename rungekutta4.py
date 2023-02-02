@@ -51,19 +51,19 @@ def rungekutta4(masscont, starfunc, statefunc, r1, m0, rho0, G, c0, K, n, h, *ar
 
         # find m using RK4 method
         # calculate the values k1, j1 through k4, j4
-        j1 = h * masscont(r[i - 1] + c[1] * h, np.abs(P[i - 1]), K, n, *arg)
-        k1 = h * starfunc(r[i - 1] + c[1] * h, np.abs(P[i - 1]), m[i - 1], G, c0, K, n, *arg)
+        j1 = h * masscont(r[i - 1] + c[1] * h, np.abs(P[i - 1]), K, n)
+        k1 = h * starfunc(r[i - 1] + c[1] * h, np.abs(P[i - 1]), m[i - 1], G, c0, K, n)
 
-        j2 = h * masscont(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, K, n, *arg)
-        k2 = h * starfunc(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i - 1] + a[2, 1] * j1, G, c0, K, n, *arg)
+        j2 = h * masscont(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, K, n)
+        k2 = h * starfunc(r[i - 1] + c[2] * h, np.abs(P[i - 1]) + a[2, 1] * k1, m[i - 1] + a[2, 1] * j1, G, c0, K, n)
 
-        j3 = h * masscont(r[i - 1] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, K, n, *arg)
+        j3 = h * masscont(r[i - 1] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2, K, n)
         k3 = h * starfunc(r[i - 1] + c[3] * h, np.abs(P[i - 1]) + a[3, 1] * k1 + a[3, 2] * k2,
-                          m[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, G, c0, K, n, *arg)
+                          m[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, G, c0, K, n)
 
-        j4 = h * masscont(r[i - 1] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, K, n, *arg)
+        j4 = h * masscont(r[i - 1] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, K, n)
         k4 = h * starfunc(r[i - 1] + c[4] * h, np.abs(P[i - 1]) + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3,
-                          m[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, G, c0, K, n, *arg)
+                          m[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, G, c0, K, n)
 
         # find next value for m
         m[i] = m[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4

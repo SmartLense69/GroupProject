@@ -5,7 +5,7 @@ import rungekutta4 as rk4
 from scipy.interpolate import CubicSpline
 
 CS: CubicSpline = None
-
+np.seterr(all="raise")
 
 def _stateFunction(K, n, P=None, rho=None):
     if P != None:
@@ -79,7 +79,7 @@ def _tov2(r, P, m, G, c, K=None, n=None, cs=CS, *args):
         * (1 - (2 * G * m) / (r * c ** 2)) ** (-1)
 
 
-def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=100, stepSize=1e7):
+def plotMassRadius(rhoMin=1e9, rhoMax=1e10, rhoNum=100, stepSize=1e7):
     _N = 1.5
 
     plt.rcParams['font.size'] = '14'
@@ -93,8 +93,8 @@ def plotMassRadius(rhoMin=1e6, rhoMax=1e9, rhoNum=100, stepSize=1e7):
     _massRadiusArray = np.zeros((2, _size))
     cubicSplineData = np.loadtxt("EoS_Spline_Data.csv", delimiter='\t').transpose()
     cubicSpline = CubicSpline(cubicSplineData[1], cubicSplineData[0])
-    _pressureFunction = np.linspace(1e15, 1e19, 1000)
-    plt.plot(_pressureFunction, cubicSpline(_pressureFunction))
+    _p = np.linspace(1e15, 1e19, 1000)
+    plt.plot(_p, cubicSpline(_p))
     plt.show()
     CS = cubicSpline
 
