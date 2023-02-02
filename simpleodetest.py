@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.optimize as optimize
 
 # testing the rk4 algorithm by solving a very simple 2nd order ode: y'' = -y
 
@@ -7,20 +8,20 @@ import matplotlib.pyplot as plt
 # z' = -y, solve first
 # y' = z, solve second
 
-def zgrad(in_y):
+def gradz(in_y):
     return -in_y
 
-def ygrad(in_z):
+def grady(in_z):
     return in_z
 
 def rungekutta4(h, stop):
 
     # constants
-    c = np.array([None, 0, 1/2, 1/2, 1])
+    c = np.array([None, 0, 0.5, 0.5, 1])
     a = np.array([[None, None, None, None],
                  [None, None, None, None],
-                 [None, 1/2, None, None],
-                 [None, 0, 1/2, None],
+                 [None, 0.5, None, None],
+                 [None, 0, 0.5, None],
                  [None, 0, 0, 1]])
     b = np.array([None, 1/6, 1/3, 1/3, 1/6])
 
@@ -30,57 +31,65 @@ def rungekutta4(h, stop):
     z = np.zeros(steps)
 
     # setting initial conditions
-    y[0] = 0
-    z[0] = 1
+    y[0] = 1
+    z[0] = 0
 
     for i in range(1, steps):
         # calculate RK4 coefficients
-        j1 = h*zgrad(y[i-1])
-        k1 = h*ygrad(z[i-1])
+        j1 = h*gradz(y[i-1])
+        k1 = h*grady(z[i-1])
 
-        j2 = h*zgrad(y[i-1] + k1*a[2,1])
-        k2 = h*ygrad(z[i-1] + j1*a[2,1])
+        j2 = h*gradz(y[i-1] + k1*0.5)
+        k2 = h*grady(z[i-1] + j1*0.5)
 
-        j3 = h*zgrad(y[i-1] + k1*a[3,1] + k2*a[3,2])
-        k3 = h*ygrad(z[i-1] + j1*a[3,1] + j2*a[3,2])
+        j3 = h*gradz(y[i-1] + k2*0.5)
+        k3 = h*grady(z[i-1] + j2*0.5)
 
-        j4 = h*zgrad(y[i-1] + k1*a[4,1] + k2*a[4,2] + k3*a[4,3])
-        k4 = h*ygrad(z[i-1] + j1*a[4,1] + j2*a[4,2] + j3*a[4,3])
+        j4 = h*gradz(y[i-1] + k3)
+        k4 = h*grady(z[i-1] + j3)
 
-        z[i] = z[i-1] + b[1]*j1 + b[2]*j2 + b[3]*j3 + b[4]*j4
-        y[i] = y[i-1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
+        z[i] = z[i-1] + (1/6)*(j1 + 2*j2 + 2*j3 + j4)
+        y[i] = y[i-1] + (1/6)*(k1 + 2*k2 + 2*k3 + k4)
 
     return x, y
 
-out = rungekutta4(0.0001, 10)
+out = rungekutta4(0.0001, 0.1)
 
 # analytical solution
 def an(in_x):
-    return np.sin(in_x)
+    return np.cos(in_x)
+
 
 plt.plot(out[0], out[1], label='num')
 plt.plot(out[0], an(out[0]), label='ana')
 plt.legend()
 plt.show()
 
-testh = [1, 5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4, 1e-4]
+testh = np.array([1, 5e-1, 1e-1, 5e-2, 1e-2, 5e-3, 1e-3, 5e-4])
 errors = np.zeros(len(testh))
 count = np.arange(0, len(testh), 1)
 for i in count:
     # setting h for the iteration of the loop
     h = testh[i]
-    outit = rungekutta4(h, 10)
-    print(outit[1][len(outit[0])-1])
-    print(an(outit[0][len(outit[0])-1]))
-    abserror = np.abs( an(outit[0][len(outit[0])-1]) - outit[1][len(outit[0])-1] )
+    outit = rungekutta4(h, 100)
+    abserror = np.abs(an(outit[0][len(outit[0])-1]) - outit[1][len(outit[0])-1])
     errors[i] = abserror
 
+def fitlinear(x, a, b):
+    return a*x + b
 
-# plt.scatter(testh, errors)
-# plt.legend()
-# plt.xscale('log')
-# plt.yscale('log')
-# plt.xlabel('h')
-# plt.ylabel('Absolute Error')
-# plt.show()
+fith_smooth = np.linspace(min(testh), max(testh), 1000)
+
+params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(errors), p0=[1, 1])
+errorsfit = fitlinear(np.log10(fith_smooth),params[0], params[1])
+print("Error \u221d h^{0:.3g}".format(params[0]))
+
+plt.scatter(testh, errors, label='Errors')
+plt.plot(fith_smooth, 10**errorsfit)
+plt.legend()
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel('h')
+plt.ylabel('Absolute Error')
+plt.show()
 
