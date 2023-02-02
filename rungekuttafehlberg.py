@@ -4,6 +4,8 @@ import diffequation as de
 
 
 def diff1(inXi, inPhi, inTheta, n=1):
+    if inXi == 0:
+        return 0
     return - inTheta**n - (2/inXi) * inPhi
 
 
@@ -75,7 +77,7 @@ def rkf(diffEq1: de.DifferentialEquation, diffEq2: de.DifferentialEquation, step
     :return: xi, phi and theta of the set of differential equations
     """
 
-    xi = np.arange(1, maxTime + stepSize, stepSize)
+    xi = np.arange(0, maxTime + stepSize, stepSize)
     n = np.shape(xi)[0]
     phi = np.zeros(n)
     theta = np.zeros(n)
