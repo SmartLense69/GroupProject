@@ -1,23 +1,25 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def phigrad(xi, phi, n, theta):
-    if xi==0:
+
+def phigrad(xi, phi, theta, n):
+    if xi == 0:
         out = 0
     else:
         out = -((2/xi)*phi + theta**n)
     return out
 
+
 def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
 
     # constants
-    c = np.array([None, 0, 1/2, 1/2, 1])
-    a = np.array([[None, None, None, None],
-                 [None, None, None, None],
-                 [None, 1/2, None, None],
-                 [None, 0, 1/2, None],
-                 [None, 0, 0, 1]])
-    b = np.array([None, 1/6, 1/3, 1/3, 1/6])
+    #c = np.array([None, 0, 1/2, 1/2, 1])
+    #a = np.array([[None, None, None, None],
+    #             [None, None, None, None],
+    #             [None, 1/2, None, None],
+    #             [None, 0, 1/2, None],
+    #             [None, 0, 0, 1]])
+    #b = np.array([None, 1/6, 1/3, 1/3, 1/6])
 
     # initialise the arrays to be used
 
@@ -39,25 +41,42 @@ def rungekutta4lane(func, xi1, phi0, theta0, n, h, *arg):
         # calculate the values k1, j1 through k4, j4
         # find phi using RK4 method
         # calculate the values k1, j1 through k4, j4
-        j1 = h * func(xi[i - 1], phi[i - 1], n, theta[i - 1], *arg)
+        j1 = h * func(xi[i - 1], phi[i - 1], theta[i - 1], n, *arg)
         k1 = h * (phi[i - 1])
 
-        j2 = h * func(xi[i - 1] + c[2] * h, phi[i - 1] + a[2, 1] * j1, n, theta[i - 1] + a[2, 1] * k1, *arg)
-        k2 = h * (phi[i - 1] + a[2, 1] * j1)
+        j2 = h * func(xi[i - 1] + 0.5*h, phi[i - 1] + 0.5*j1, theta[i - 1] + 0.5*k1, n, *arg)
+        k2 = h * (phi[i - 1] + 0.5*j1)
 
-        j3 = h * func(xi[i - 1] + c[3] * h, phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, n,
-                      theta[i - 1] + a[3, 1] * k1 + a[3, 2] * k2, *arg)
-        k3 = h * (phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2)
+        j3 = h * func(xi[i - 1] + 0.5*h, phi[i - 1] + 0.5*j2, theta[i - 1] + 0.5*k2, n, *arg)
+        k3 = h * (phi[i - 1] + 0.5*j2)
 
-        j4 = h * func(xi[i - 1] + c[4] * h, phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, n,
-                      theta[i - 1] + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, *arg)
-        k4 = h * (phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3)
+        j4 = h * func(xi[i - 1] + h, phi[i - 1] + j3, theta[i - 1] + k3, n, *arg)
+        k4 = h * (phi[i - 1] + j3)
 
-        # find next value for phi
-        phi[i] = phi[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4
+        phi[i] = phi[i - 1] + (j1 + 2*j2 + 2*j3 + j4) / 6
+        theta[i] = theta[i - 1] + (k1 + 2*k2 + 2*k3 + k4) / 6
 
-        # find next value for theta
-        theta[i] = theta[i - 1] + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
+
+
+        # j1 = h * func(xi[i - 1], phi[i - 1], n, theta[i - 1], *arg)
+        # k1 = h * (phi[i - 1])
+        #
+        # j2 = h * func(xi[i - 1] + c[2] * h, phi[i - 1] + a[2, 1] * j1, n, theta[i - 1] + a[2, 1] * k1, *arg)
+        # k2 = h * (phi[i - 1] + a[2, 1] * j1)
+        #
+        # j3 = h * func(xi[i - 1] + c[3] * h, phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2, n,
+        #               theta[i - 1] + a[3, 1] * k1 + a[3, 2] * k2, *arg)
+        # k3 = h * (phi[i - 1] + a[3, 1] * j1 + a[3, 2] * j2)
+        #
+        # j4 = h * func(xi[i - 1] + c[4] * h, phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3, n,
+        #               theta[i - 1] + a[4, 1] * k1 + a[4, 2] * k2 + a[4, 3] * k3, *arg)
+        # k4 = h * (phi[i - 1] + a[4, 1] * j1 + a[4, 2] * j2 + a[4, 3] * j3)
+        #
+        # # find next value for phi
+        # phi[i] = phi[i - 1] + b[1] * j1 + b[2] * j2 + b[3] * j3 + b[4] * j4
+        #
+        # # find next value for theta
+        # theta[i] = theta[i - 1] + b[1] * k1 + b[2] * k2 + b[3] * k3 + b[4] * k4
 
     return (xi, theta)
 
@@ -78,6 +97,9 @@ for n, c in zip(n_list, colours):
 
     # run RK algorithm
     xi, theta = rungekutta4lane(phigrad, 35, 0, 1, n, 0.01)
+    print(xi)
+    #print(phi)
+    print(theta)
 
     # switch parameters
     rho = 1e9*theta**n

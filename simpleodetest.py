@@ -45,7 +45,7 @@ def rungekutta4(h, stop):
         k3 = h*ygrad(z[i-1] + j1*a[3,1] + j2*a[3,2])
 
         j4 = h*zgrad(y[i-1] + k1*a[4,1] + k2*a[4,2] + k3*a[4,3])
-        k4 = h*ygrad(z[i] + j1*a[4,1] + j2*a[4,2] + j3*a[4,3])
+        k4 = h*ygrad(z[i-1] + j1*a[4,1] + j2*a[4,2] + j3*a[4,3])
 
         z[i] = z[i-1] + b[1]*j1 + b[2]*j2 + b[3]*j3 + b[4]*j4
         y[i] = y[i-1] + b[1]*k1 + b[2]*k2 + b[3]*k3 + b[4]*k4
