@@ -1,6 +1,10 @@
+import gzip
+
 import numpy as np
 import matplotlib.pyplot as plt
-
+import euler_CR as eCR
+import diffequation as de
+import config_CR as cf
 
 # this is so that the state functions can be varied
 def statefunc(K, n, P=None, rho=None):
@@ -10,13 +14,31 @@ def statefunc(K, n, P=None, rho=None):
         return K * (rho**(1 + 1/n))
 
 
+def _getP(rho):
+    return cf.Var.K * (rho ** (1 + 1 / cf.Var.n))
+
+
+def _getRho(pressure):
+    return (pressure / cf.Var.K) ** (cf.Var.n / (cf.Var.n + 1))
+
+
+def _hydro(radius, pressure):
+    return - (cf.G.Mtr3PKgSec2 * cf.Var.m * _getRho(pressure) / (radius**2))
+
+
+def _masscont(radius, pressure):
+    return 4 * np.pi * radius ** 2 * _getRho(pressure)
+
+
 # mass continuity equation
 def masscont(r, P, K, n):
     return 4 * np.pi * r**2 * statefunc(K, n, P=P)
 
+
 # hydrstatic equilibrium equation
 def hydro(r, P, m, G, c, K, n):
     return - ( G * m * statefunc(K, n, P=P) / r**2 )
+
 
 # TOV equation
 def tov(r, P, m, G, c, K, n):
@@ -25,7 +47,6 @@ def tov(r, P, m, G, c, K, n):
 
 def eulerlimit(masscont, starfunc, statefunction, m0, rho0, G, c0, K, n, h, *arg):
     """
-
     :param masscont:
     :param starfunc:
     :param statefunc
@@ -57,7 +78,7 @@ def eulerlimit(masscont, starfunc, statefunction, m0, rho0, G, c0, K, n, h, *arg
 
         # find m using euler method
         msol[i] = msol[i-1] + h*masscont(rvalues[i], Psol[i-1], K, n, *arg)
-        # find P using euelr method
+        # find P using euler method
         Psol[i] = Psol[i - 1] + h*starfunc(rvalues[i], Psol[i-1], msol[i], G, c0, K, n, *arg)
 
         if Psol[i]/Psol[0] < 1e-5:
@@ -66,8 +87,7 @@ def eulerlimit(masscont, starfunc, statefunction, m0, rho0, G, c0, K, n, h, *arg
             msol = msol[:i]
             break
 
-    return (rvalues, Psol, msol)
-
+    return rvalues, Psol, msol
 
 
 # outputs for different values of n
@@ -81,15 +101,28 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run euler
-    r, P, m = eulerlimit(masscont, hydro, statefunc, 1, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
+    # r, P, m = eulerlimit(masscont, hydro, statefunc, 1, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
 
-    print("For n = ", n, ", m = ", m[len(m)-1])
+    diff2 = de.DifferentialEquation(_masscont, cf.Var.m)
+    diff1 = de.DifferentialEquation(_getP, _getP(cf.Var.rho))
+
+    r, m, P = eCR.eulerTOV(diff1, diff2, 1e4, 1e8)
+
+    print(r)
+    print(m)
+    print(P)
+
+    rho = _getRho(P)
+    cf.Var.n = n
+    plt.plot(r/np.max(r), P/np.max(P), label=n)
+
+    # print("For n = ", n, ", m = ", m[len(m)-1])
 
     # switch to density
-    rho = (P / 5e11)**(n/(n+1))
+    # rho = (P / 5e11)**(n/(n+1))
 
     # plot curve
-    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #rho/np.max(rho)
+    # plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #rho/np.max(rho)
 
 # plot configs
 plt.title('Euler hydrostatic')

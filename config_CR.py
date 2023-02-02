@@ -32,3 +32,19 @@ class G:
 
     """
     Mtr3PKgSec2 = 6.67384e-11
+
+
+class Var:
+    """
+    Variables like K (equation of state coefficient) or n.
+    Includes:
+
+    * K
+    * n
+    * m0
+    * rho0
+    """
+    K = 5e11
+    n = 1.5
+    m = 1
+    rho = 1.5e11
