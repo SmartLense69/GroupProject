@@ -3,7 +3,10 @@ import plotter
 import numpy as np
 
 if __name__ == '__main__':
-    mr.plotMassRadius()
+
+    mr.generateSplineData()
+
+    # mr.plotMassRadius()
 
     # n = 5
     # plotEuler = True
