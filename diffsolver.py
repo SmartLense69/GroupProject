@@ -43,14 +43,14 @@ class DiffEquation:
     def _checkInputDuplicates(self):
         for _index in range(0, self._inputVarSize - 1):
             _currentInputVarName: str = self._inputVarNames[_index]
-            for _compareIndex in range(_index, self._inputVarSize):
+            for _compareIndex in range(_index+1, self._inputVarSize):
                 if _currentInputVarName == self._inputVarNames[_compareIndex]:
                     raise InputVariableDuplicateError(_currentInputVarName)
 
     def _checkInputSorting(self):
         _sortedInput = self._inputVarNames.copy()
         _sortedInput.sort()
-        for _sortedInputItem, _inputVarNamesItem in zip(_sortedInput, self._inputVarNames)
+        for _sortedInputItem, _inputVarNamesItem in zip(_sortedInput, self._inputVarNames):
             if _sortedInputItem is not _inputVarNamesItem:
                 raise InputNotSortedError()
 
@@ -61,9 +61,8 @@ class DiffEquation:
             raise InputVariableNumberMismatchError(_sizeDictionary, self._inputVarSize)
         _numpyInputValues = np.zeros(_sizeDictionary, dtype=np.float128)
         for _index in range(0, _sizeDictionary):
-            _numpyInputValues[_index] = _sortedInputValues.values()
+            _numpyInputValues[_index] = list(_sortedInputValues.values())[_index]
         return self._functionCall(_numpyInputValues)
-
 
     def __init__(self, inputVariables: list[str], outputVariable: str, function: callable(np.ndarray),
                  initialCondition: float):
@@ -76,3 +75,13 @@ class DiffEquation:
         self._checkInputSorting()
 
 
+def theta(var: np.ndarray):
+    x = var[0]
+    y = var[1]
+    z = var[2]
+    return x + y + z
+
+
+diffEquation = DiffEquation(["x", "y", "z"], "theta", theta, 1)
+result = diffEquation.call({"x": 2, "y": 1, "z": 5})
+print(result)
