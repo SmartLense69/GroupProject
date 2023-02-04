@@ -12,5 +12,5 @@ class DifferentialEquation:
         represented by a pointer to a function
         :param initialCondition: The initial condition for t = 0
         """
-        self.func = decoupledFunction
-        self.iniC = initialCondition
+        self.func: callable(any) = decoupledFunction
+        self.iniC: float = initialCondition
