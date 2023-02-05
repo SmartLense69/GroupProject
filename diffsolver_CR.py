@@ -1,5 +1,3 @@
-from typing import Dict
-
 import numpy as np
 
 
@@ -172,8 +170,7 @@ class DifferentialEquationSystem:
         # Unify output variables
         self.listOutput: list[str] = []
         for diff in self.listDiffs:
-            for inputVar in diff.outputVarName:
-                self.listOutput.append(inputVar)
+            self.listOutput.append(diff.outputVarName)
         self.listOutput = list(dict.fromkeys(self.listOutput))
 
         self.listAllVariables: list[str] = []
@@ -252,8 +249,8 @@ def _theta(listInput: np.ndarray):
     return listInput[0]
 
 
-diffEq1 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
-diffEq2 = DifferentialEquation(["phi", "theta", "xi"], "phigrad", _phi, 0, 2)
+diffEq1 = DifferentialEquation(["phi0", "theta", "xi"], "phi", _phi, 0, 2)
+diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
 differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
 differentialSolver = DifferentialSolver(differentialSystem, 1, 5)
