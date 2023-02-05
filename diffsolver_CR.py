@@ -95,30 +95,32 @@ class DifferentialEquation:
         return self.functionCall(numpyInputValues)
 
     def __init__(self, inputVariables: list[str], outputVariable: str, function: callable(np.ndarray),
-                 initialCondition: float):
+                 initialCondition: float, inputVarTimeIndex: int):
         """
         Creates a differential equation object.
 
         Syntax is as follows:
-        diff = DifferentialEquation(["input1", "input2"], "output", function, initial)
+        diff = DifferentialEquation(["input1", "input2"], "output", function, initial, index)
 
         :param inputVariables: Input variables as a list of strings. Syntax: ["a","b","c"].
         :param outputVariable: For what is this differential equation solving the gradient for.
         :param function: The function in which takes a numpy array of inputs and gives an output.
         :param initialCondition: The initial condition of the differential equation at t = 0.
+        :param inputVarTimeIndex: The index of the time dependent variable in inputVariables.
         """
         self.inputVarNames: list[str] = inputVariables
         self.inputVarSize: int = len(self.inputVarNames)
         self.outputVarName: str = outputVariable
         self.functionCall: callable(np.ndarray) = function
-        self.initialCondit: float = initialCondition
+        self.initialCondition: float = initialCondition
+        self.timeVar: str = inputVariables[inputVarTimeIndex]
         self.__checkInputDuplicates()
         self.__checkInputSorting()
 
 
-class DifferentialEquationSolver:
+class DifferentialEquationSystem:
     """
-    Solves a set of differential equations.
+    A set of differential equations.
     """
 
     def __checkSorting(self) -> None:
@@ -145,12 +147,61 @@ class DifferentialEquationSolver:
                         if compareDiff.outputVarName is inputVars and compareIndex > diffIndex:
                             raise SortError(1)
 
+    def __unifyVariables(self):
+
+        # Unify Input Variables
+        self.listInput: list[str] = []
+        for diff in self.listDiffs:
+            for inputVar in diff.inputVarNames:
+                self.listInput.append(inputVar)
+
+        # Hack: A dict can only have unique variables.
+        # Create one to get rid of duplicates,
+        # and make a list out of the dict
+        self.listInput = list(dict.fromkeys(self.listInput))
+
+        # Unify time dependent variables
+        self.listTime: list[str] = []
+        for diff in self.listDiffs:
+            self.listTime.append(diff.timeVar)
+        self.listTime = list(dict.fromkeys(self.listTime))
+
+        # Unify output variables
+        self.listOutput: list[str] = []
+        for diff in self.listDiffs:
+            for inputVar in diff.outputVarName:
+                self.listOutput.append(inputVar)
+        self.listOutput = list(dict.fromkeys(self.listOutput))
+
     def __init__(self, listDifferentials: list[DifferentialEquation]):
         """
-        Create a differential equation solver.
+        Create a differential equation system.
         :param listDifferentials: List of differential equation objects
         """
         self.listDiffs: list[DifferentialEquation] = listDifferentials
         self.__checkSorting()
+        self.__unifyVariables()
 
 
+def _a(i: np.ndarray):
+    return i[0]**2
+
+
+def _b(i: np.ndarray):
+    return i[0]
+
+
+def _c(i: np.ndarray):
+    return i[0] + i[1]
+
+
+def _z(i: np.ndarray):
+    return np.sqrt(i[0] - i[1])
+
+
+diffEq1 = DifferentialEquation(["x", "y"], "z", _z, 1, 0)
+diffEq2 = DifferentialEquation(["y"], "b", _b, 0, 0)
+diffEq3 = DifferentialEquation(["x"], "a", _a, 2, 0)
+diffEq4 = DifferentialEquation(["a", "b"], "c", _c, 0, 1)
+
+differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2, diffEq3, diffEq4])
