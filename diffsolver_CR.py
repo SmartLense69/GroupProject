@@ -1,3 +1,5 @@
+from typing import Dict
+
 import numpy as np
 
 
@@ -39,7 +41,7 @@ class SortError(Exception):
             case 0:
                 super().__init__("The input variable names list is not sorted")
             case 1:
-                super().__init__("The differential equations are not correctly"
+                super().__init__("The differential equations are not correctly "
                                  "sorted by their calculation order")
 
 
@@ -129,7 +131,8 @@ class DifferentialEquationSystem:
         given in the order they have been passed to the class constructor.
         :raises SortError:
             When a differential equation, which input is computed/output by another differential
-            equation after the current differential equation. Example: a = func(b, c), followed by b = func(d) -> Throws SortError.
+            equation after the current differential equation. Example: a = func(b, c), followed by b = func(d)
+            -> Throws SortError.
             Should have been: b = func(d) and then a = func(b,c)
         """
         for diffIndex, diff in enumerate(self.listDiffs):
@@ -173,6 +176,13 @@ class DifferentialEquationSystem:
                 self.listOutput.append(inputVar)
         self.listOutput = list(dict.fromkeys(self.listOutput))
 
+        self.listAllVariables: list[str] = []
+        for inputVar in self.listInput:
+            self.listAllVariables.append(inputVar)
+        for outputVar in self.listOutput:
+            self.listAllVariables.append(outputVar)
+        self.listAllVariables = list(dict.fromkeys(self.listAllVariables))
+
     def __init__(self, listDifferentials: list[DifferentialEquation]):
         """
         Create a differential equation system.
@@ -183,25 +193,70 @@ class DifferentialEquationSystem:
         self.__unifyVariables()
 
 
-def _a(i: np.ndarray):
-    return i[0]**2
+class DifferentialSolver:
+
+    varDictInput: dict[str, int]
+    varDict: dict[str, np.ndarray]
+
+    def __resetVarDict(self):
+        for variable in self.diffSystem.listAllVariables:
+            self.varDict[variable] = np.zeros(self.stepsSize)
+        for outputVariable, diff in zip(self.diffSystem.listOutput, self.diffSystem.listDiffs):
+            self.varDict[outputVariable][0] = diff.initialCondition
+
+    def __resetInputDict(self):
+        self.varDictInput = {}
+        for inputVariable in self.diffSystem.listInput:
+            self.varDictInput[inputVariable] = 0
+
+    def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float):
+        self.varDict = {}
+        self.diffSystem = diffSystem
+        self.steps = np.arange(0, stopTime+stepSize, stepSize)
+        self.stepsSize = self.steps.size
+        self.__resetVarDict()
+        self.__resetInputDict()
+
+    def euler(self) -> None:
+        self.__resetVarDict()
+        for i in range(1, self.stepsSize):
+            self.__resetInputDict()
+            for diff in self.diffSystem.listDiffs:
+                inputList = []
+                for inputVar in diff.inputVarNames:
+                    inputVarCounter: int = self.varDictInput.get(inputVar)
+                    if inputVarCounter == 0:
+                        inputList.append(self.varDict.get(inputVar)[i - 1])
+                        self.varDictInput.update({inputVar: inputVarCounter + 1})
+                    else:
+                        inputList.append(self.varDict.get(inputVar)[i])
+                        self.varDictInput.update({inputVar: inputVarCounter + 1})
+                inputList = np.asarray(inputList)
+                outputArray = self.varDict.get(diff.outputVarName)
+                outputArray[i] = outputArray[i - 1] + self.stepsSize * diff.functionCall(inputList)
+                output = {diff.outputVarName: outputArray}
+                self.varDict.update(output)
 
 
-def _b(i: np.ndarray):
-    return i[0]
+def _phi(listInput: np.ndarray):
+    xi = listInput[0]
+    theta0 = listInput[1]
+    phi0 = listInput[2]
+    if xi == 0:
+        return xi
+    else:
+        return ((-2/xi)*phi0) - theta0
 
 
-def _c(i: np.ndarray):
-    return i[0] + i[1]
+def _theta(listInput: np.ndarray):
+    return listInput[0]
 
 
-def _z(i: np.ndarray):
-    return np.sqrt(i[0] - i[1])
+diffEq1 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
+diffEq2 = DifferentialEquation(["phi", "theta", "xi"], "phigrad", _phi, 0, 2)
 
-
-diffEq1 = DifferentialEquation(["x", "y"], "z", _z, 1, 0)
-diffEq2 = DifferentialEquation(["y"], "b", _b, 0, 0)
-diffEq3 = DifferentialEquation(["x"], "a", _a, 2, 0)
-diffEq4 = DifferentialEquation(["a", "b"], "c", _c, 0, 1)
-
-differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2, diffEq3, diffEq4])
+differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
+differentialSolver = DifferentialSolver(differentialSystem, 1, 5)
+print(differentialSolver.varDict)
+differentialSolver.euler()
+print(differentialSolver.varDict)
