@@ -29,13 +29,18 @@ class InputVariableNumberMismatchError(Exception):
         super().__init__(self._message)
 
 
-class InputNotSortedError(Exception):
+class SortError(Exception):
     """
     Thrown when the list of parameters are not sorted.
     """
 
-    def __init__(self):
-        super().__init__("The input variable names list is not sorted")
+    def __init__(self, flag: int):
+        match flag:
+            case 0:
+                super().__init__("The input variable names list is not sorted")
+            case 1:
+                super().__init__("The differential equations are not correctly"
+                                 "sorted by their calculation order")
 
 
 class DifferentialEquation:
@@ -68,20 +73,40 @@ class DifferentialEquation:
         sortedInput.sort()
         for sortedInputItem, inputVarNamesItem in zip(sortedInput, self.inputVarNames):
             if sortedInputItem is not inputVarNamesItem:
-                raise InputNotSortedError()
+                raise SortError(0)
 
-    def call(self, inputValues: dict):
+    def call(self, inputValues: dict) -> float:
+        """
+        Calls the differential equation with values put in.
+        :param inputValues: Dictionary of the input values. Syntax is: {a: value1, b: value2}
+        :return: Output of the differential equation.
+        """
         sortedInputValues = dict(sorted(inputValues.items()))
         sizeDictionary = len(sortedInputValues)
+
+        # Check if the input variables has the same size of the dictionary keyword list
         if self.inputVarSize != sizeDictionary:
             raise InputVariableNumberMismatchError(sizeDictionary, self.inputVarSize)
+
+        # Whenever a numpy array is created, always use np.float128
         numpyInputValues = np.zeros(sizeDictionary, dtype=np.float128)
-        for _index in range(0, sizeDictionary):
-            numpyInputValues[_index] = list(sortedInputValues.values())[_index]
+        for index in range(0, sizeDictionary):
+            numpyInputValues[index] = list(sortedInputValues.values())[index]
         return self.functionCall(numpyInputValues)
 
     def __init__(self, inputVariables: list[str], outputVariable: str, function: callable(np.ndarray),
                  initialCondition: float):
+        """
+        Creates a differential equation object.
+
+        Syntax is as follows:
+        diff = DifferentialEquation(["input1", "input2"], "output", function, initial)
+
+        :param inputVariables: Input variables as a list of strings. Syntax: ["a","b","c"].
+        :param outputVariable: For what is this differential equation solving the gradient for.
+        :param function: The function in which takes a numpy array of inputs and gives an output.
+        :param initialCondition: The initial condition of the differential equation at t = 0.
+        """
         self.inputVarNames: list[str] = inputVariables
         self.inputVarSize: int = len(self.inputVarNames)
         self.outputVarName: str = outputVariable
@@ -92,43 +117,40 @@ class DifferentialEquation:
 
 
 class DifferentialEquationSolver:
+    """
+    Solves a set of differential equations.
+    """
 
-    def __sortListByIO(self):
-        listNewDiff = []
-        for currentDiff in self.listDiffs:
-            if len(listNewDiff) == 0:
-                listNewDiff.append(currentDiff)
-                continue
-            for index, newDiff in enumerate(self.listDiffs):
-                for inputVariable in newDiff.inputVarNames:
-                    if currentDiff.outputVarName is inputVariable:
-                        listNewDiff.insert(index, currentDiff)
-        self.listDiffs = listNewDiff.copy()
-        del listNewDiff
+    def __checkSorting(self) -> None:
+        """
+        Checks if the give differential equations would be computable,
+        given in the order they have been passed to the class constructor.
+        :raises SortError:
+            When a differential equation, which input is computed/output by another differential
+            equation after the current differential equation. Example: a = func(b, c), followed by b = func(d) -> Throws SortError.
+            Should have been: b = func(d) and then a = func(b,c)
+        """
+        for diffIndex, diff in enumerate(self.listDiffs):
+            for compareIndex, compareDiff in enumerate(self.listDiffs):
+
+                # This if statement avoids comparing a differential equation to itself
+                if diff is not compareDiff:
+                    for inputVars in diff.inputVarNames:
+
+                        # If our comparison differential equation has an output
+                        # which is part of the inputs of the current differential equation, and
+                        # it comes after this current differential equation, there is no way
+                        # to compute the comparison differential equation, since the inputs of the
+                        # current differential equation will never be met.
+                        if compareDiff.outputVarName is inputVars and compareIndex > diffIndex:
+                            raise SortError(1)
 
     def __init__(self, listDifferentials: list[DifferentialEquation]):
+        """
+        Create a differential equation solver.
+        :param listDifferentials: List of differential equation objects
+        """
         self.listDiffs: list[DifferentialEquation] = listDifferentials
-        self.__sortListByIO()
+        self.__checkSorting()
 
 
-def _a(i: np.ndarray):
-    return i[0]**2
-
-
-def _b(i: np.ndarray):
-    return i[0]
-
-
-def _c(i: np.ndarray):
-    return i[0] + i[1]
-
-def _z(i: np.ndarray):
-    return np.sqrt(i[0] - i[1])
-
-
-diffEq1 = DifferentialEquation(["x", "y"], "z", _z, 1)
-diffEq2 = DifferentialEquation(["x"], "a", _a, 2)
-diffEq3 = DifferentialEquation(["a", "b"], "c", _c, 0)
-diffEq4 = DifferentialEquation(["y"], "b", _b, 0)
-
-differentialSolver = DifferentialEquationSolver([diffEq1, diffEq2, diffEq3, diffEq4])
