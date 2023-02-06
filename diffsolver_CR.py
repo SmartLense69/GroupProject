@@ -1,5 +1,7 @@
 import numpy as np
+from matplotlib import pyplot as plt
 
+import config_CR as cf
 
 class InputVariableDuplicateError(Exception):
     """
@@ -186,7 +188,7 @@ class DifferentialEquationSystem:
         :param listDifferentials: List of differential equation objects
         """
         self.listDiffs: list[DifferentialEquation] = listDifferentials
-        self.__checkSorting()
+        # self.__checkSorting()
         self.__unifyVariables()
 
 
@@ -197,63 +199,66 @@ class DifferentialSolver:
 
     def __resetVarDict(self):
         for variable in self.diffSystem.listAllVariables:
-            self.varDict[variable] = np.zeros(self.stepsSize)
+            self.varDict[variable] = self.steps.copy()
         for outputVariable, diff in zip(self.diffSystem.listOutput, self.diffSystem.listDiffs):
             self.varDict[outputVariable][0] = diff.initialCondition
 
     def __resetInputDict(self):
         self.varDictInput = {}
-        for inputVariable in self.diffSystem.listInput:
-            self.varDictInput[inputVariable] = 0
+        for variable in self.diffSystem.listAllVariables:
+            self.varDictInput[variable] = 0
 
     def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float):
         self.varDict = {}
         self.diffSystem = diffSystem
         self.steps = np.arange(0, stopTime+stepSize, stepSize)
-        self.stepsSize = self.steps.size
+        self.stepNum = self.steps.size
+        self.stepSize = stepSize
         self.__resetVarDict()
         self.__resetInputDict()
 
     def euler(self) -> None:
         self.__resetVarDict()
-        for i in range(1, self.stepsSize):
+        for i in range(1, self.stepNum):
             self.__resetInputDict()
             for diff in self.diffSystem.listDiffs:
                 inputList = []
-                for inputVar in diff.inputVarNames:
-                    inputVarCounter: int = self.varDictInput.get(inputVar)
-                    if inputVarCounter == 0:
-                        inputList.append(self.varDict.get(inputVar)[i - 1])
-                        self.varDictInput.update({inputVar: inputVarCounter + 1})
+                for inputVariable in diff.inputVarNames:
+                    inputVarCount: int = self.varDictInput.get(inputVariable)
+                    if inputVarCount == 0:
+                        inputList.append(self.varDict.get(inputVariable)[i - 1])
+                        self.varDictInput.update({inputVariable: inputVarCount + 1})
                     else:
-                        inputList.append(self.varDict.get(inputVar)[i])
-                        self.varDictInput.update({inputVar: inputVarCounter + 1})
+                        inputList.append(self.varDict.get(inputVariable)[i])
+                        self.varDictInput.update({inputVariable: inputVarCount + 1})
                 inputList = np.asarray(inputList)
                 outputArray = self.varDict.get(diff.outputVarName)
-                outputArray[i] = outputArray[i - 1] + self.stepsSize * diff.functionCall(inputList)
-                output = {diff.outputVarName: outputArray}
-                self.varDict.update(output)
+                outputArray[i] = outputArray[i - 1] + self.stepSize * diff.functionCall(inputList)
+                self.varDict.update({diff.outputVarName: outputArray})
 
 
 def _phi(listInput: np.ndarray):
-    xi = listInput[0]
+    phi0 = listInput[0]
     theta0 = listInput[1]
-    phi0 = listInput[2]
+    xi = listInput[2]
     if xi == 0:
         return xi
     else:
-        return ((-2/xi)*phi0) - theta0
+        return ((-2/xi)*phi0) - theta0**cf.Var.n
 
 
 def _theta(listInput: np.ndarray):
     return listInput[0]
 
 
-diffEq1 = DifferentialEquation(["phi0", "theta", "xi"], "phi", _phi, 0, 2)
+diffEq1 = DifferentialEquation(["phi", "theta", "xi"], "phi", _phi, 0, 2)
 diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
 differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
-differentialSolver = DifferentialSolver(differentialSystem, 1, 5)
-print(differentialSolver.varDict)
-differentialSolver.euler()
-print(differentialSolver.varDict)
+differentialSolver = DifferentialSolver(differentialSystem, 0.001, 1)
+for n in np.arange(0, 5, 0.5):
+    cf.Var.n = n
+    differentialSolver.euler()
+    plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
+
+plt.show()
