@@ -1,7 +1,8 @@
+import warnings as wr
 import numpy as np
 from matplotlib import pyplot as plt
-
 import config_CR as cf
+
 
 class InputVariableDuplicateError(Exception):
     """
@@ -127,6 +128,9 @@ class DifferentialEquationSystem:
 
     def __checkSorting(self) -> None:
         """
+        **@DEPRECATED: Function is probably not necessary,
+        but results after deletion was not tested.**
+
         Checks if the give differential equations would be computable,
         given in the order they have been passed to the class constructor.
         :raises SortError:
@@ -135,6 +139,10 @@ class DifferentialEquationSystem:
             -> Throws SortError.
             Should have been: b = func(d) and then a = func(b,c)
         """
+
+        # This function is deprecated
+        wr.warn("Function __checkSorting(self) is probably not necessary, but results after deletion was not tested.",
+                DeprecationWarning)
         for diffIndex, diff in enumerate(self.listDiffs):
             for compareIndex, compareDiff in enumerate(self.listDiffs):
 
@@ -150,7 +158,12 @@ class DifferentialEquationSystem:
                         if compareDiff.outputVarName is inputVars and compareIndex > diffIndex:
                             raise SortError(1)
 
-    def __unifyVariables(self):
+    def __unifyVariables(self) -> None:
+        """
+        Gathers all variables mentioned in the differential equations,
+        including input, output and time dependent variables,
+        sorts out any duplicates, and saves them in seperate lists.
+        """
 
         # Unify Input Variables
         self.listInput: list[str] = []
@@ -193,37 +206,97 @@ class DifferentialEquationSystem:
 
 
 class DifferentialSolver:
+    """
+    A class that has several methods to solve a differential equation system.
+    """
 
     varDictInput: dict[str, int]
-    varDict: dict[str, np.ndarray]
+    """
+    A dictionary to keep track of multiple used variables.
+    Whenever a variable is called more than once, the indexing has to be change,
+    if a differential equation afterwards uses this exact variable.
+    
+    {key: variable name | value: How often it was used in one cycle (one i iteration)}
+    """
 
-    def __resetVarDict(self):
+    varDict: dict[str, np.ndarray]
+    """
+    A dictionary to keep track of all involved variables.
+    
+    {key: variable name | value: data (numpy array)}
+    """
+
+    def __resetVarDict(self) -> None:
+        """
+        Resets the variable dictionary to an ever-increasing numpy array.
+        """
         for variable in self.diffSystem.listAllVariables:
             self.varDict[variable] = self.steps.copy()
         for outputVariable, diff in zip(self.diffSystem.listOutput, self.diffSystem.listDiffs):
             self.varDict[outputVariable][0] = diff.initialCondition
 
-    def __resetInputDict(self):
+    def __resetInputDict(self) -> None:
+        """
+        Resets the input dictionary.
+
+        **Implementation notice: Reset every i.**
+        """
+
+        # Create an empty dictionary and set all
+        # occurrences of variables to 0.
         self.varDictInput = {}
         for variable in self.diffSystem.listAllVariables:
             self.varDictInput[variable] = 0
 
     def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float):
+        """
+        Creates a differential equation solver object.
+        :param diffSystem: A set of differential equations
+        :param stepSize: Representative of h
+        :param stopTime: How far should the solver go.
+        """
+
         self.varDict = {}
         self.diffSystem = diffSystem
         self.steps = np.arange(0, stopTime+stepSize, stepSize)
         self.stepNum = self.steps.size
+        """
+        The number of elements in the value array in varDict. 
+        """
+
         self.stepSize = stepSize
+        """
+        The size of one step, representive of variable *h*
+        """
+
         self.__resetVarDict()
         self.__resetInputDict()
 
     def euler(self) -> None:
+
+        # Reset the variable dictionary, so we don't use a solution
+        # computed from a different iteration/method
         self.__resetVarDict()
+
+        # Iterate through the value arrays
         for i in range(1, self.stepNum):
+
+            # Each i, the number of occurrences per variable has to be reset.
             self.__resetInputDict()
+
+            # Iterate through the differential equations
             for diff in self.diffSystem.listDiffs:
+
+                # Because all functions take input variables as a numpy array,
+                # we append the results in a list, because numpy has no append.
                 inputList = []
                 for inputVariable in diff.inputVarNames:
+
+                    # Get the number of occurrences of the input variable.
+                    # If the variable never occurred, use the previous entry
+                    # (i.e. index with i - 1)
+                    # If the variable occurred before, use the current entry
+                    # (i.e. index with i)
                     inputVarCount: int = self.varDictInput.get(inputVariable)
                     if inputVarCount == 0:
                         inputList.append(self.varDict.get(inputVariable)[i - 1])
@@ -231,9 +304,17 @@ class DifferentialSolver:
                     else:
                         inputList.append(self.varDict.get(inputVariable)[i])
                         self.varDictInput.update({inputVariable: inputVarCount + 1})
+
+                # Convert to an numpy compatible list
                 inputList = np.asarray(inputList)
+
+                # Get the output variable of the current differential equation
                 outputArray = self.varDict.get(diff.outputVarName)
+
+                # That's Euler for you
                 outputArray[i] = outputArray[i - 1] + self.stepSize * diff.functionCall(inputList)
+
+                # Update the entry for the output variable
                 self.varDict.update({diff.outputVarName: outputArray})
 
 
@@ -255,10 +336,10 @@ diffEq1 = DifferentialEquation(["phi", "theta", "xi"], "phi", _phi, 0, 2)
 diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
 differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
-differentialSolver = DifferentialSolver(differentialSystem, 0.001, 1)
-for n in np.arange(0, 5, 0.5):
+differentialSolver = DifferentialSolver(differentialSystem, 0.001, 25)
+for n in np.arange(0, 5, 1):
     cf.Var.n = n
     differentialSolver.euler()
     plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
-
+plt.ylim(-0.5, 1.2)
 plt.show()
