@@ -226,6 +226,13 @@ class DifferentialSolver:
     {key: variable name | value: data (numpy array)}
     """
 
+    thresholdDict: dict[str, float]
+    """
+    Dictionary for all threshold conditions
+    
+    {key: variable name | value: threshold value}
+    """
+
     def __resetVarDict(self) -> None:
         """
         Resets the variable dictionary to an ever-increasing numpy array.
@@ -257,6 +264,7 @@ class DifferentialSolver:
         """
 
         self.varDict = {}
+        self.thresholdDict = {}
         self.diffSystem = diffSystem
         self.steps = np.arange(0, stopTime+stepSize, stepSize)
         self.stepNum = self.steps.size
@@ -316,6 +324,9 @@ class DifferentialSolver:
 
                 # Update the entry for the output variable
                 self.varDict.update({diff.outputVarName: outputArray})
+
+    def setThreshold(self, thresholdDictionary: dict[str, float]):
+        self.thresholdDict = thresholdDictionary
 
 
 def _phi(listInput: np.ndarray):
