@@ -286,8 +286,10 @@ class DifferentialSolver:
 
                 if self.thresholdDict.get(diff.outputVarName) is not None:
                     if outputArray[i] < self.thresholdDict.get(diff.outputVarName):
+                        self.varDict.update({diff.outputVarName: outputArray})
                         for variable in self.varDict:
                             self.varDict.update({variable: self.varDict.get(variable)[:i-1]})
+                        return
 
                 # Update the entry for the output variable
                 self.varDict.update({diff.outputVarName: outputArray})
@@ -315,10 +317,13 @@ diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
 differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
 differentialSolver = DifferentialSolver(differentialSystem, 0.001, 25)
-differentialSolver.addThreshold({"theta": 10-5})
-for n in np.arange(0, 5, 1):
+differentialSolver.addThreshold({"theta": 1e-5})
+for n in np.arange(0, 5, 0.5):
     cf.Var.n = n
     differentialSolver.euler()
+    print(differentialSolver.varDict)
     plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
-plt.ylim(-0.5, 1.2)
+
+plt.axhline(0, color='gray', linestyle='dashed')
+plt.grid()
 plt.show()
