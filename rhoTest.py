@@ -151,13 +151,14 @@ def createSLySpline():
         plt.show()
 
 
-createSpline()
-runRK4TOV(1e6, 1e14, 1e5, 30, color='r', marker='o')
-runRK4Hydro(1e6, 1e14, 1e5, 30, color='b', marker='v')
-plt.grid()
-plt.show()
+# createSpline()
+# runRK4TOV(1e6, 1e14, 1e5, 30, color='r', marker='o')
+# runRK4Hydro(1e6, 1e14, 1e5, 30, color='b', marker='v')
+# plt.grid()
+# plt.show()
 createSLySpline()
-runRK4TOV(2.5e14, 5e15, 1e3, 50, color='g', marker='x')
+runRK4TOV(2e14, 7e15, 1e3, 25, color='r', marker='o')
+# runRK4Hydro(2e14, 7e15, 1e3, 50, color='b', marker='v')
 plt.grid()
 plt.show()
 
