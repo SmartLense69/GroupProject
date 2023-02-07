@@ -210,15 +210,6 @@ class DifferentialSolver:
     A class that has several methods to solve a differential equation system.
     """
 
-    varDictInput: dict[str, int]
-    """
-    A dictionary to keep track of multiple used variables.
-    Whenever a variable is called more than once, the indexing has to be change,
-    if a differential equation afterwards uses this exact variable.
-    
-    {key: variable name | value: How often it was used in one cycle (one i iteration)}
-    """
-
     varDict: dict[str, np.ndarray]
     """
     A dictionary to keep track of all involved variables.
@@ -241,19 +232,6 @@ class DifferentialSolver:
             self.varDict[variable] = self.steps.copy()
         for outputVariable, diff in zip(self.diffSystem.listOutput, self.diffSystem.listDiffs):
             self.varDict[outputVariable][0] = diff.initialCondition
-
-    def __resetInputDict(self) -> None:
-        """
-        Resets the input dictionary.
-
-        **Implementation notice: Reset every i.**
-        """
-
-        # Create an empty dictionary and set all
-        # occurrences of variables to 0.
-        self.varDictInput = {}
-        for variable in self.diffSystem.listAllVariables:
-            self.varDictInput[variable] = 0
 
     def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float):
         """
@@ -278,7 +256,6 @@ class DifferentialSolver:
         """
 
         self.__resetVarDict()
-        self.__resetInputDict()
 
     def euler(self) -> None:
 
@@ -289,9 +266,6 @@ class DifferentialSolver:
         # Iterate through the value arrays
         for i in range(1, self.stepNum):
 
-            # Each i, the number of occurrences per variable has to be reset.
-            self.__resetInputDict()
-
             # Iterate through the differential equations
             for diff in self.diffSystem.listDiffs:
 
@@ -299,19 +273,7 @@ class DifferentialSolver:
                 # we append the results in a list, because numpy has no append.
                 inputList = []
                 for inputVariable in diff.inputVarNames:
-
-                    # Get the number of occurrences of the input variable.
-                    # If the variable never occurred, use the previous entry
-                    # (i.e. index with i - 1)
-                    # If the variable occurred before, use the current entry
-                    # (i.e. index with i)
-                    inputVarCount: int = self.varDictInput.get(inputVariable)
-                    if inputVarCount == 0:
-                        inputList.append(self.varDict.get(inputVariable)[i - 1])
-                        self.varDictInput.update({inputVariable: inputVarCount + 1})
-                    else:
-                        inputList.append(self.varDict.get(inputVariable)[i])
-                        self.varDictInput.update({inputVariable: inputVarCount + 1})
+                    inputList.append(self.varDict.get(inputVariable)[i - 1])
 
                 # Convert to an numpy compatible list
                 inputList = np.asarray(inputList)
@@ -322,10 +284,15 @@ class DifferentialSolver:
                 # That's Euler for you
                 outputArray[i] = outputArray[i - 1] + self.stepSize * diff.functionCall(inputList)
 
+                if self.thresholdDict.get(diff.outputVarName) is not None:
+                    if outputArray[i] < self.thresholdDict.get(diff.outputVarName):
+                        for variable in self.varDict:
+                            self.varDict.update({variable: self.varDict.get(variable)[:i-1]})
+
                 # Update the entry for the output variable
                 self.varDict.update({diff.outputVarName: outputArray})
 
-    def setThreshold(self, thresholdDictionary: dict[str, float]):
+    def addThreshold(self, thresholdDictionary: dict[str, float]):
         self.thresholdDict = thresholdDictionary
 
 
@@ -348,6 +315,7 @@ diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
 differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
 differentialSolver = DifferentialSolver(differentialSystem, 0.001, 25)
+differentialSolver.addThreshold({"theta": 10-5})
 for n in np.arange(0, 5, 1):
     cf.Var.n = n
     differentialSolver.euler()
