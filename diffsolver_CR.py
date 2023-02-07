@@ -1,9 +1,15 @@
 import warnings as wr
 import numpy as np
 from matplotlib import pyplot as plt
+from scipy.interpolate import CubicSpline
+
 import config_CR as cf
 
 np.seterr(all='raise')
+
+_RHO = 0
+_P = 0
+
 
 class InputVariableDuplicateError(Exception):
     """
@@ -354,6 +360,24 @@ def _P(inputList: np.ndarray):
     return cf.Var.K * (rho ** (1 + 1 / cf.Var.K))
 
 
+def _CreateSpline():
+    cubicSplineData = np.loadtxt("EoS_Spline_Data.csv", delimiter='\t').transpose()
+    global _RHO
+    _RHO = CubicSpline(cubicSplineData[1], cubicSplineData[0], extrapolate=True)
+    global _P
+    _P = CubicSpline(cubicSplineData[0], cubicSplineData[1], extrapolate=True)
+
+
+def _CreateNeutronStarSpline():
+    cubicSplineSlyData = np.loadtxt("wrishikData/Neutron-Star-Structure-master/SLy.txt").transpose()
+    rhoData = cubicSplineSlyData[2]
+    pressureData = cubicSplineSlyData[3]
+    global _RHO
+    _RHO = CubicSpline(pressureData, rhoData, extrapolate=True)
+    global _P
+    _P = CubicSpline(rhoData, pressureData, extrapolate=True)
+
+
 def _M(inputList: np.ndarray):
     P = inputList[0]
     r = inputList[1]
@@ -364,30 +388,81 @@ def _TOV(inputList: np.ndarray):
     m = inputList[0]
     P = inputList[1]
     r = inputList[2]
-    return - ((cf.G.Mtr3PKgSec2 * m * _RHO(P)) / r ** 2) \
-         * (1 + P / (_RHO(P) * cf.C.mtrPsec ** 2)) \
-         * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.mtrPsec ** 2)) \
-         * (1 - (2 * cf.G.Mtr3PKgSec2 * m) / (r * cf.C.mtrPsec ** 2)) ** (-1)
+    return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2) \
+         * (1 + P / (_RHO(P) * cf.C.cmtrPsec ** 2)) \
+         * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.cmtrPsec ** 2)) \
+         * (1 - (2 * cf.G.whatUnitHuh * m) / (r * cf.C.cmtrPsec ** 2)) ** (-1)
 
 
-def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30):
+def _HYDRO(inputList: np.ndarray):
+    m = inputList[0]
+    P = inputList[1]
+    r = inputList[2]
+    return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2)
+
+
+def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
 
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
         diffEqs = DifferentialEquationSystem([diffM, diffP])
-        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e10)
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
         rMod = diffS.varDict.get("r")
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
-        diffS.addThreshold({"P": 1e-5})
+        diffS.addThreshold({"p": 1e-5})
         diffS.euler()
-        r = diffS.varDict.get("r")[-1] / 1e5
-        m = diffS.varDict.get("m")[-1] / 2e33
-        print("Calculation {0} with rho = {1}\n"
-              "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
-        plt.scatter(r, m)
-    plt.show()
+        if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
+            r = diffS.varDict.get("r")[-1]/1e5
+            m = diffS.varDict.get("m")[-1]/2e33
+            print("Calculation {0} with rho = {1}\n"
+                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+            plt.scatter(r, m, color=color, marker=marker)
+        else:
+            print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    # plt.show()
+
+def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+
+    for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
+        diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
+        diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
+        diffEqs = DifferentialEquationSystem([diffM, diffP])
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"p": 1e-5})
+        diffS.euler()
+        if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
+            r = diffS.varDict.get("r")[-1]/1e5
+            m = diffS.varDict.get("m")[-1]/2e33
+            print("Calculation {0} with rho = {1}\n"
+                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+            plt.scatter(r, m, color=color, marker=marker)
+        else:
+            print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    # plt.show()
 
 
-_testTOV()
+# # Polytropic
+# _testTOV(rhoMin=1e7, rhoMax=1e12)
+# _testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+# plt.grid()
+# plt.show()
+#
+# # White Dwarfs
+# _CreateSpline()
+# _testTOV()
+# _testHYDRO(color="b", marker="o")
+# plt.grid()
+# plt.show()
+
+
+# Neutron stars
+_CreateNeutronStarSpline()
+_testTOV(rhoMin=2e14, rhoMax=7e15, rhoH=4e3, rhoNum=30)
+_testHYDRO(rhoMin=2e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="b", marker="o")
+plt.grid()
+plt.show()

@@ -33,6 +33,9 @@ class G:
     """
     Mtr3PKgSec2 = 6.67384e-11
 
+    # TODO: Determine units of this constant.
+    whatUnitHuh = 6.67384e-8
+
 
 class Var:
     """
@@ -44,7 +47,7 @@ class Var:
     * m0
     * rho0
     """
-    K = 5e11
+    K = 1e13
     n = 1.5
     m = 1
     rho = 1.5e11
