@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import config_CR as cf
 
+np.seterr(all='raise')
 
 class InputVariableDuplicateError(Exception):
     """
@@ -71,6 +72,7 @@ class DifferentialEquation:
         They have to be alphabetically sorted, as of 04/02/2023,
         this class assigns input values via a dictionary, that is sorted alphabetically.
         TODO: Implement method so input variables do not have to be sorted alphabetically.
+        TODO: The sort() method sorts after ASCII occurrence, not after the actual alphabet. USE ONLY SMALL LETTERS
         """
         sortedInput = self.inputVarNames.copy()
         sortedInput.sort()
@@ -244,7 +246,7 @@ class DifferentialSolver:
         self.varDict = {}
         self.thresholdDict = {}
         self.diffSystem = diffSystem
-        self.steps = np.arange(0, stopTime+stepSize, stepSize)
+        self.steps = np.arange(1, stopTime+stepSize, stepSize)
         self.stepNum = self.steps.size
         """
         The number of elements in the value array in varDict. 
@@ -312,18 +314,80 @@ def _theta(listInput: np.ndarray):
     return listInput[0]
 
 
-diffEq1 = DifferentialEquation(["phi", "theta", "xi"], "phi", _phi, 0, 2)
-diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
+def _testLaneEmden() -> None:
+    """
+    Tests lane emden decoupled differential equations.
+    Uses Euler for now.
+    """
 
-differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
-differentialSolver = DifferentialSolver(differentialSystem, 0.001, 25)
-differentialSolver.addThreshold({"theta": 1e-5})
-for n in np.arange(0, 5, 0.5):
-    cf.Var.n = n
-    differentialSolver.euler()
-    print(differentialSolver.varDict)
-    plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
+    # Create differential equations
+    diffEq1 = DifferentialEquation(["phi", "theta", "xi"], "phi", _phi, 0, 2)
+    diffEq2 = DifferentialEquation(["phi"], "theta", _theta, 1, 0)
 
-plt.axhline(0, color='gray', linestyle='dashed')
-plt.grid()
-plt.show()
+    # Create a differential equation system.
+    differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
+
+    # Use it to create a differential equation solver.
+    differentialSolver = DifferentialSolver(differentialSystem, 0.001, 35)
+
+    # Add a threshold for the variable theta.
+    differentialSolver.addThreshold({"theta": 1e-5})
+
+    # Iterate through all the n's and plot them
+    for n in np.arange(0, 5.5, 0.5):
+        cf.Var.n = n
+        differentialSolver.euler()
+        print(n)
+        plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
+    plt.axhline(0, color='gray', linestyle='dashed')
+    plt.grid()
+    plt.show()
+
+
+def _RHO(inputList: np.ndarray):
+    P = inputList
+    return (P / cf.Var.K) ** (cf.Var.n / (cf.Var.n + 1))
+
+
+def _P(inputList: np.ndarray):
+    rho = inputList
+    return cf.Var.K * (rho ** (1 + 1 / cf.Var.K))
+
+
+def _M(inputList: np.ndarray):
+    P = inputList[0]
+    r = inputList[1]
+    return 4 * np.pi * r ** 2 * _RHO(P)
+
+
+def _TOV(inputList: np.ndarray):
+    m = inputList[0]
+    P = inputList[1]
+    r = inputList[2]
+    return - ((cf.G.Mtr3PKgSec2 * m * _RHO(P)) / r ** 2) \
+         * (1 + P / (_RHO(P) * cf.C.mtrPsec ** 2)) \
+         * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.mtrPsec ** 2)) \
+         * (1 - (2 * cf.G.Mtr3PKgSec2 * m) / (r * cf.C.mtrPsec ** 2)) ** (-1)
+
+
+def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30):
+
+    for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
+        diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
+        diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
+        diffEqs = DifferentialEquationSystem([diffM, diffP])
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e10)
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"P": 1e-5})
+        diffS.euler()
+        r = diffS.varDict.get("r")[-1] / 1e5
+        m = diffS.varDict.get("m")[-1] / 2e33
+        print("Calculation {0} with rho = {1}\n"
+              "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+        plt.scatter(r, m)
+    plt.show()
+
+
+_testTOV()
