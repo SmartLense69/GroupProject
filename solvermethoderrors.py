@@ -7,6 +7,7 @@ import rungekutta4 as rk4
 import rungekuttafehlberg as rukufe
 import secondordermethod as midpoint
 import fourthordermethod as fourth
+import fifthordermethod as fifth
 
 # defining solved analytical solutions
 # for n = 0
@@ -213,6 +214,7 @@ for j, index, ana in zip(js, indices, analyt):
     rkferrors = np.zeros(len(testh))
     midpointerrors = np.zeros(len(testh))
     fourtherrors = np.zeros(len(testh))
+    fiftherrors = np.zeros(len(testh))
 
     for i in range(0, len(testh)):
         h = testh[i]
@@ -235,9 +237,16 @@ for j, index, ana in zip(js, indices, analyt):
         abserrorrk4at1 = np.abs(ana(rk4to1[0][-1]) - rk4to1[2][-1])
         rk4errors[i] = abserrorrk4at1
 
+        fifthto1 = fifth.fifthorder(3, h, j, fifth.phigrad, 0, fifth.thetagrad, 1)
+        abserrorfifthat1 = np.abs(
+            ana(fifthto1[0][len(fifthto1[0]) - 1]) - fifthto1[1][len(fifthto1[1]) - 1])
+        fiftherrors[i] = abserrorfifthat1
+
         rkfto1 = rukufe.rkf(rukufe.de.DifferentialEquation(rukufe.diff1, 0), rukufe.de.DifferentialEquation(rukufe.diff2, 1), h, 1, j)
         abserrorrkfat1 = np.abs(ana(rkfto1[0][-1]) - rkfto1[1][-1])
         rkferrors[i] = abserrorrkfat1
+
+    print("For n = {0}, the error dependance on h are:".format(j))
 
     euler_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(eulererrors), p0=[1, 1])
     eulererrorfit = fitlinear(np.log10(fith_smooth), euler_params[0], euler_params[1])
@@ -250,16 +259,22 @@ for j, index, ana in zip(js, indices, analyt):
     fourth_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(fourtherrors),
                                                             p0=[1, 1])
     fourtherrorfit = fitlinear(np.log10(fith_smooth), fourth_params[0], fourth_params[1])
-    print("Fourth Error \u221d h^{0:.3g}".format(fourth_params[0]))
+    print("3/8-Rule RK4 Error \u221d h^{0:.3g}".format(fourth_params[0]))
 
     rk4_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rk4errors), p0=[1, 1])
     rk4errorfit = fitlinear(np.log10(fith_smooth), rk4_params[0], rk4_params[1])
     print("RK4 Error \u221d h^{0:.3g}".format(rk4_params[0]))
 
+    fifth_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(fiftherrors),
+                                                          p0=[1, 1])
+    fiftherrorfit = fitlinear(np.log10(fith_smooth), fifth_params[0], fifth_params[1])
+    print("Fifth Error \u221d h^{0:.3g}".format(fifth_params[0]))
+
     rkf_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferrors), p0=[1, 1])
     rkferrorfit = fitlinear(np.log10(fith_smooth), rkf_params[0], rkf_params[1])
     print("RKF Error \u221d h^{0:.3g}".format(rkf_params[0]))
 
+    print()
 
     plt.subplot(1, 3, index)
 
@@ -269,11 +284,14 @@ for j, index, ana in zip(js, indices, analyt):
     plt.scatter(testh, midpointerrors, label='Midpoint')
     plt.plot(fith_smooth, 10 ** midpointerrorfit, label='Midpoint Fit')
 
-    plt.scatter(testh, fourtherrors, label='Fourth')
-    plt.plot(fith_smooth, 10 ** fourtherrorfit, label='Fourth Fit')
+    plt.scatter(testh, fourtherrors, label='3/8-Rule RK4')
+    plt.plot(fith_smooth, 10 ** fourtherrorfit, label='3/8-Rule Fit')
 
-    plt.scatter(testh, rk4errors, label='RK4')
+    plt.scatter(testh, rk4errors, label='Classic RK4')
     plt.plot(fith_smooth, 10 ** rk4errorfit, label='RK4 Fit')
+
+    plt.scatter(testh, fiftherrors, label='Fifth')
+    plt.plot(fith_smooth, 10 ** fiftherrorfit, label='Fifth Fit')
 
     plt.scatter(testh, rkferrors, label='RKF')
     plt.plot(fith_smooth, 10 ** rkferrorfit, label='RKF Fit')

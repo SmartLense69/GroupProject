@@ -40,7 +40,7 @@ def eulerlimit(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
     """
 
     # initialise the arrays to be used
-    rvalues = np.arange(0, 1e8+h, h)
+    rvalues = np.arange(0, 1e11+h, h)
     # number of steps
     steps = np.shape(rvalues)[0]
     # solution arrays
@@ -80,7 +80,7 @@ plt.figure(figsize=(12, 8))
 for n, c in zip(n_list, colours):
 
     # run euler
-    r, P, m = eulerlimit(masscont, hydro, 0, 1.5e11, 6.67e-8, 3e10, 5e11, n, 1e4)
+    r, P, m = eulerlimit(masscont, hydro, 0, 1.5e11, 6.67e-8, 3e10, 1e13, n, 1e4)
 
     print("For n = ", n, ", m = ", m[len(m)-1])
 
