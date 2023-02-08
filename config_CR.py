@@ -49,5 +49,5 @@ class Var:
     """
     K = 1e13
     n = 1.5
-    m = 1
+    m = 0
     rho = 1.5e11

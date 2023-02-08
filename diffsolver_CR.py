@@ -5,7 +5,7 @@ from scipy.interpolate import CubicSpline
 
 import config_CR as cf
 
-np.seterr(all='raise')
+# np.seterr(all='raise')
 
 _RHO = 0
 _P = 0
@@ -447,24 +447,51 @@ def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='
     # plt.show()
 
 
-# Polytropic
-_testTOV(rhoMin=1e7, rhoMax=1e12)
-_testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+def _testN(rhoH=1e4):
+    for i, n in enumerate(np.arange(0.5, 5.5, 0.5)):
+        cf.Var.n = n
+        diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
+        diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(np.asarray([cf.Var.rho])), 2)
+        diffEqs = DifferentialEquationSystem([diffM, diffP])
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e10)
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"p": 1e-5})
+        diffS.euler()
+        r = diffS.varDict.get("r")
+        P = diffS.varDict.get("p")
+        rho = _RHO(np.asarray(np.asarray(P)))
+        plt.plot(r/np.max(r), rho/np.max(rho), label="n = {0}".format(cf.Var.n))
+        print("Calculation {0} at n={1}".format(i, cf.Var.n))
+
+
+
+# plt.show()
+
+# # Polytropic
+# _testTOV(rhoMin=1e7, rhoMax=1e12)
+# _testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+# plt.grid()
+# plt.show()
+#
+#
+# # White Dwarfs
+# _CreateSpline()
+# _testTOV()
+# _testHYDRO(color="b", marker="o")
+# plt.grid()
+# plt.show()
+#
+#
+# # Neutron stars
+# _CreateNeutronStarSpline()
+# _testTOV(rhoMin=2e14, rhoMax=7e15, rhoH=4e3, rhoNum=30)
+# _testHYDRO(rhoMin=2e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="b", marker="o")
+# plt.grid()
+# plt.show()
+
+_testN()
 plt.grid()
-plt.show()
-
-
-# White Dwarfs
-_CreateSpline()
-_testTOV()
-_testHYDRO(color="b", marker="o")
-plt.grid()
-plt.show()
-
-
-# Neutron stars
-_CreateNeutronStarSpline()
-_testTOV(rhoMin=2e14, rhoMax=7e15, rhoH=4e3, rhoNum=30)
-_testHYDRO(rhoMin=2e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="b", marker="o")
-plt.grid()
+plt.legend()
 plt.show()
