@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 def phigrad(r, m, P, K=None, n=None):
     xi = r
     phi = m
@@ -114,6 +113,9 @@ n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
 colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
 
 # plot configs
+
+# FOR EXTRA FUNSIES
+# plt.xkcd(scale=10, randomness=20, length=1000)
 plt.figure(figsize=(12, 8))
 
 for n, c in zip(n_list, colours):
