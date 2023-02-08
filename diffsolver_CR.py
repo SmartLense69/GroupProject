@@ -357,7 +357,7 @@ def _RHO(inputList: np.ndarray):
 
 def _P(inputList: np.ndarray):
     rho = inputList
-    return cf.Var.K * (rho ** (1 + 1 / cf.Var.K))
+    return cf.Var.K * (rho ** (1 + 1 / cf.Var.n))
 
 
 def _CreateSpline():
@@ -423,6 +423,7 @@ def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
     # plt.show()
 
+
 def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
 
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
@@ -446,18 +447,19 @@ def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='
     # plt.show()
 
 
-# # Polytropic
-# _testTOV(rhoMin=1e7, rhoMax=1e12)
-# _testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
-# plt.grid()
-# plt.show()
-#
-# # White Dwarfs
-# _CreateSpline()
-# _testTOV()
-# _testHYDRO(color="b", marker="o")
-# plt.grid()
-# plt.show()
+# Polytropic
+_testTOV(rhoMin=1e7, rhoMax=1e12)
+_testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+plt.grid()
+plt.show()
+
+
+# White Dwarfs
+_CreateSpline()
+_testTOV()
+_testHYDRO(color="b", marker="o")
+plt.grid()
+plt.show()
 
 
 # Neutron stars
