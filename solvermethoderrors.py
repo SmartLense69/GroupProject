@@ -8,6 +8,7 @@ import rungekuttafehlberg as rukufe
 import secondordermethod as midpoint
 import fourthordermethod as fourth
 import fifthordermethod as fifth
+import rknmethod as rkn
 
 # defining solved analytical solutions
 # for n = 0
@@ -215,6 +216,7 @@ for j, index, ana in zip(js, indices, analyt):
     midpointerrors = np.zeros(len(testh))
     fourtherrors = np.zeros(len(testh))
     fiftherrors = np.zeros(len(testh))
+    rknerrors = np.zeros(len(testh))
 
     for i in range(0, len(testh)):
         h = testh[i]
@@ -241,6 +243,11 @@ for j, index, ana in zip(js, indices, analyt):
         abserrorfifthat1 = np.abs(
             ana(fifthto1[0][len(fifthto1[0]) - 1]) - fifthto1[1][len(fifthto1[1]) - 1])
         fiftherrors[i] = abserrorfifthat1
+
+        rknto1 = rkn.rknorder(3, h, j, fifth.phigrad, 0, fifth.thetagrad, 1)
+        abserrorrknat1 = np.abs(
+            ana(rknto1[0][len(rknto1[0]) - 1]) - rknto1[1][len(rknto1[1]) - 1])
+        rknerrors[i] = abserrorrknat1
 
         rkfto1 = rukufe.rkf(rukufe.de.DifferentialEquation(rukufe.diff1, 0), rukufe.de.DifferentialEquation(rukufe.diff2, 1), h, 1, j)
         abserrorrkfat1 = np.abs(ana(rkfto1[0][-1]) - rkfto1[1][-1])
@@ -270,6 +277,10 @@ for j, index, ana in zip(js, indices, analyt):
     fiftherrorfit = fitlinear(np.log10(fith_smooth), fifth_params[0], fifth_params[1])
     print("Fifth Error \u221d h^{0:.3g}".format(fifth_params[0]))
 
+    rkn_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rknerrors), p0=[1, 1])
+    rknerrorfit = fitlinear(np.log10(fith_smooth), rkn_params[0], rkn_params[1])
+    print("RKN Error \u221d h^{0:.3g}".format(rkn_params[0]))
+
     rkf_params, params_covariance = optimize.curve_fit(fitlinear, np.log10(testh), np.log10(rkferrors), p0=[1, 1])
     rkferrorfit = fitlinear(np.log10(fith_smooth), rkf_params[0], rkf_params[1])
     print("RKF Error \u221d h^{0:.3g}".format(rkf_params[0]))
@@ -292,6 +303,9 @@ for j, index, ana in zip(js, indices, analyt):
 
     plt.scatter(testh, fiftherrors, label='Fifth')
     plt.plot(fith_smooth, 10 ** fiftherrorfit, label='Fifth Fit')
+
+    plt.scatter(testh, rknerrors, label='RKN')
+    plt.plot(fith_smooth, 10 ** rknerrorfit, label='RKN Fit')
 
     plt.scatter(testh, rkferrors, label='RKF')
     plt.plot(fith_smooth, 10 ** rkferrorfit, label='RKF Fit')
