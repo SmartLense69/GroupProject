@@ -6,6 +6,7 @@ from scipy.interpolate import CubicSpline
 import config_CR as cf
 
 # np.seterr(all='raise')
+# wr.simplefilter('error')
 
 _RHO = 0
 _P = 0
@@ -294,13 +295,18 @@ class DifferentialSolver:
                         else:
                             print("You are not supposed to be here.")
                     output = self.stepSize * diff.functionCall(inputList)
-                    coefDict.update({coef: output})
-            for output in self.varDict.keys():
+                    coefDict.get(coef)[j] = output
+                    # coefDict.update({coef: output})
+            for output in self.diffSystem.listOutput:
                 outputArray = self.varDict.get(output)
                 outputSum = outputArray[i - 1]
                 for m in range(1, NUMK + 1):
                     outputSum += cf.RK4.B[m] * coefDict.get(output)[m - 1]
                 outputArray[i] = outputSum
+                if np.isnan(outputArray[i]):
+                    wr.warn("RK4: Output value is NaN", RuntimeWarning)
+                if np.isinf(outputArray[i]):
+                    wr.warn("RK4: Output value is infinite", RuntimeWarning)
                 self.varDict.update({output: outputArray})
                 if self.thresholdDict.get(output) is not None:
                     if outputArray[i] < self.thresholdDict.get(output):
@@ -396,7 +402,7 @@ def _testLaneEmden() -> None:
 
 def _RHO(inputList: np.ndarray):
     P = inputList
-    return (P / cf.Var.K) ** (cf.Var.n / (cf.Var.n + 1))
+    return (np.abs(P) / cf.Var.K) ** (cf.Var.n / (cf.Var.n + 1))
 
 
 def _P(inputList: np.ndarray):

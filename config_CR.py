@@ -50,7 +50,7 @@ class Var:
     """
     K = 1e13
     n = 1.5
-    m = 0
+    m = 1
     rho = 1.5e11
 
 
