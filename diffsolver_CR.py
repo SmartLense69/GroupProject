@@ -34,7 +34,7 @@ class InputVariableNumberMismatchError(Exception):
         self._lenInputDictionary = sizeDictionary
         self._lenInputVariables = sizeInputVariables
         self._message = "The differential equation requires " \
-                        "{0} inputs but {1} were given"\
+                        "{0} inputs but {1} were given" \
             .format(self._lenInputVariables, self._lenInputDictionary)
         super().__init__(self._message)
 
@@ -68,7 +68,7 @@ class DifferentialEquation:
         """
         for index in range(0, self.inputVarSize - 1):
             currentInputVarName: str = self.inputVarNames[index]
-            for compareIndex in range(index+1, self.inputVarSize):
+            for compareIndex in range(index + 1, self.inputVarSize):
                 if currentInputVarName == self.inputVarNames[compareIndex]:
                     raise InputVariableDuplicateError(currentInputVarName)
 
@@ -170,7 +170,7 @@ class DifferentialEquationSystem:
         """
         Gathers all variables mentioned in the differential equations,
         including input, output and time dependent variables,
-        sorts out any duplicates, and saves them in seperate lists.
+        sorts out any duplicates, and saves them in separate lists.
         """
 
         # Unify Input Variables
@@ -202,6 +202,12 @@ class DifferentialEquationSystem:
         for outputVar in self.listOutput:
             self.listAllVariables.append(outputVar)
         self.listAllVariables = list(dict.fromkeys(self.listAllVariables))
+
+    def getByOutput(self, outputVariable: str) -> DifferentialEquation | None:
+        for diff in self.listDiffs:
+            if diff.outputVarName is outputVariable:
+                return diff
+        return None
 
     def __init__(self, listDifferentials: list[DifferentialEquation]):
         """
@@ -252,7 +258,7 @@ class DifferentialSolver:
         self.varDict = {}
         self.thresholdDict = {}
         self.diffSystem = diffSystem
-        self.steps = np.arange(1, stopTime+stepSize, stepSize)
+        self.steps = np.arange(1, stopTime + stepSize, stepSize)
         self.stepNum = self.steps.size
         """
         The number of elements in the value array in varDict. 
@@ -260,10 +266,48 @@ class DifferentialSolver:
 
         self.stepSize = stepSize
         """
-        The size of one step, representive of variable *h*
+        The size of one step, representative of variable *h*
         """
 
         self.__resetVarDict()
+
+    def rk4(self) -> None:
+        self.__resetVarDict()
+        NUMK: int = 4
+        for i in range(1, self.stepNum):
+            coefDict = {}
+            for variable in self.diffSystem.listOutput:
+                coefDict[variable] = np.zeros(NUMK)
+            for j in range(0, NUMK):
+                for coef in coefDict.keys():
+                    diff = self.diffSystem.getByOutput(coef)
+                    inputList = []
+                    for inputVar in diff.inputVarNames:
+                        if inputVar in diff.timeVar:
+                            inputList.append(self.varDict.get(inputVar)[i - 1] +
+                                             cf.RK4.C[j + 1] * self.stepSize)
+                        elif inputVar in coefDict:
+                            sumInput = self.varDict.get(inputVar)[i - 1]
+                            for coefNum in range(0, j):
+                                sumInput += cf.RK4.A[j + 1, coefNum + 1] * coefDict.get(inputVar)[coefNum]
+                            inputList.append(sumInput)
+                        else:
+                            print("You are not supposed to be here.")
+                    output = self.stepSize * diff.functionCall(inputList)
+                    coefDict.update({coef: output})
+            for output in self.varDict.keys():
+                outputArray = self.varDict.get(output)
+                outputSum = outputArray[i - 1]
+                for m in range(1, NUMK + 1):
+                    outputSum += cf.RK4.B[m] * coefDict.get(output)[m - 1]
+                outputArray[i] = outputSum
+                self.varDict.update({output: outputArray})
+                if self.thresholdDict.get(output) is not None:
+                    if outputArray[i] < self.thresholdDict.get(output):
+                        self.varDict.update({output: outputArray})
+                        for variable in self.varDict:
+                            self.varDict.update({variable: self.varDict.get(variable)[:i - 1]})
+                        return
 
     def euler(self) -> None:
 
@@ -283,7 +327,7 @@ class DifferentialSolver:
                 for inputVariable in diff.inputVarNames:
                     inputList.append(self.varDict.get(inputVariable)[i - 1])
 
-                # Convert to an numpy compatible list
+                # Convert to a numpy compatible list
                 inputList = np.asarray(inputList)
 
                 # Get the output variable of the current differential equation
@@ -296,7 +340,7 @@ class DifferentialSolver:
                     if outputArray[i] < self.thresholdDict.get(diff.outputVarName):
                         self.varDict.update({diff.outputVarName: outputArray})
                         for variable in self.varDict:
-                            self.varDict.update({variable: self.varDict.get(variable)[:i-1]})
+                            self.varDict.update({variable: self.varDict.get(variable)[:i - 1]})
                         return
 
                 # Update the entry for the output variable
@@ -313,7 +357,7 @@ def _phi(listInput: np.ndarray):
     if xi == 0:
         return xi
     else:
-        return ((-2/xi)*phi0) - theta0**cf.Var.n
+        return ((-2 / xi) * phi0) - theta0 ** cf.Var.n
 
 
 def _theta(listInput: np.ndarray):
@@ -389,9 +433,9 @@ def _TOV(inputList: np.ndarray):
     P = inputList[1]
     r = inputList[2]
     return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2) \
-         * (1 + P / (_RHO(P) * cf.C.cmtrPsec ** 2)) \
-         * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.cmtrPsec ** 2)) \
-         * (1 - (2 * cf.G.whatUnitHuh * m) / (r * cf.C.cmtrPsec ** 2)) ** (-1)
+        * (1 + P / (_RHO(P) * cf.C.cmtrPsec ** 2)) \
+        * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.cmtrPsec ** 2)) \
+        * (1 - (2 * cf.G.whatUnitHuh * m) / (r * cf.C.cmtrPsec ** 2)) ** (-1)
 
 
 def _HYDRO(inputList: np.ndarray):
@@ -402,7 +446,6 @@ def _HYDRO(inputList: np.ndarray):
 
 
 def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
-
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
@@ -412,12 +455,12 @@ def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
         diffS.addThreshold({"p": 1e-5})
-        diffS.euler()
+        diffS.rk4()
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
-            r = diffS.varDict.get("r")[-1]/1e5
-            m = diffS.varDict.get("m")[-1]/2e33
+            r = diffS.varDict.get("r")[-1] / 1e5
+            m = diffS.varDict.get("m")[-1] / 2e33
             print("Calculation {0} with rho = {1}\n"
-                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+                  "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
             plt.scatter(r, m, color=color, marker=marker)
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
@@ -425,7 +468,6 @@ def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'
 
 
 def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
-
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
@@ -435,12 +477,12 @@ def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
         diffS.addThreshold({"p": 1e-5})
-        diffS.euler()
+        diffS.rk4()
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
-            r = diffS.varDict.get("r")[-1]/1e5
-            m = diffS.varDict.get("m")[-1]/2e33
+            r = diffS.varDict.get("r")[-1] / 1e5
+            m = diffS.varDict.get("m")[-1] / 2e33
             print("Calculation {0} with rho = {1}\n"
-                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+                  "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
             plt.scatter(r, m, color=color, marker=marker)
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
@@ -462,18 +504,15 @@ def _testN(rhoH=1e4):
         r = diffS.varDict.get("r")
         P = diffS.varDict.get("p")
         rho = _RHO(np.asarray(np.asarray(P)))
-        plt.plot(r/np.max(r), rho/np.max(rho), label="n = {0}".format(cf.Var.n))
+        plt.plot(r / np.max(r), rho / np.max(rho), label="n = {0}".format(cf.Var.n))
         print("Calculation {0} at n={1}".format(i, cf.Var.n))
 
 
-
-# plt.show()
-
-# # Polytropic
-# _testTOV(rhoMin=1e7, rhoMax=1e12)
-# _testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
-# plt.grid()
-# plt.show()
+# Polytropic
+_testTOV(rhoMin=1e7, rhoMax=1e12)
+_testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+plt.grid()
+plt.show()
 #
 #
 # # White Dwarfs
@@ -491,7 +530,7 @@ def _testN(rhoH=1e4):
 # plt.grid()
 # plt.show()
 
-_testN()
-plt.grid()
-plt.legend()
-plt.show()
+# _testN()
+# plt.grid()
+# plt.legend()
+# plt.show()

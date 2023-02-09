@@ -8,6 +8,7 @@ Example:
     Speed of light - C
     Speed of light in meter per seconds - C.mps
 """
+import numpy as np
 
 
 class C:
@@ -51,3 +52,14 @@ class Var:
     n = 1.5
     m = 0
     rho = 1.5e11
+
+
+class RK4:
+
+    A = np.array([[None, None, None, None],
+                     [None, None, None, None],
+                     [None, 1 / 2, None, None],
+                     [None, 0, 1 / 2, None],
+                     [None, 0, 0, 1]], dtype=np.float128)
+    B = np.array([None, 1 / 6, 1 / 3, 1 / 3, 1 / 6], dtype=np.float128)
+    C = np.array([None, 0, 1 / 2, 1 / 2, 1], dtype=np.float128)
