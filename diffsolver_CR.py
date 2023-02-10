@@ -11,7 +11,6 @@ import config_CR as cf
 _RHO = 0
 _P = 0
 
-
 class InputVariableDuplicateError(Exception):
     """
     Thrown when a differential equation has input variables
@@ -275,7 +274,9 @@ class DifferentialSolver:
     def rk4(self) -> None:
         self.__resetVarDict()
         NUMK: int = 4
-        for i in range(1, self.stepNum):
+        for t in range(1, self.stepNum):
+            # if t % self.stepSize == 0 or t == self.stepNum:
+            #    print("Iteration {0} from {1}:\t{2}%".format(t, self.stepNum, np.round((t/self.stepNum)*100, 2)))
             coefDict = {}
             for variable in self.diffSystem.listOutput:
                 coefDict[variable] = np.zeros(NUMK)
@@ -285,10 +286,10 @@ class DifferentialSolver:
                     inputList = []
                     for inputVar in diff.inputVarNames:
                         if inputVar in diff.timeVar:
-                            inputList.append(self.varDict.get(inputVar)[i - 1] +
+                            inputList.append(self.varDict.get(inputVar)[t - 1] +
                                              cf.RK4.C[j + 1] * self.stepSize)
                         elif inputVar in coefDict:
-                            sumInput = self.varDict.get(inputVar)[i - 1]
+                            sumInput = self.varDict.get(inputVar)[t - 1]
                             for coefNum in range(0, j):
                                 sumInput += cf.RK4.A[j + 1, coefNum + 1] * coefDict.get(inputVar)[coefNum]
                             inputList.append(sumInput)
@@ -296,24 +297,26 @@ class DifferentialSolver:
                             print("You are not supposed to be here.")
                     output = self.stepSize * diff.functionCall(inputList)
                     coefDict.get(coef)[j] = output
-                    # coefDict.update({coef: output})
+                    # coefDict.update({coef: coefDict.get(coef)})
             for output in self.diffSystem.listOutput:
                 outputArray = self.varDict.get(output)
-                outputSum = outputArray[i - 1]
+                outputSum = outputArray[t - 1]
                 for m in range(1, NUMK + 1):
                     outputSum += cf.RK4.B[m] * coefDict.get(output)[m - 1]
-                outputArray[i] = outputSum
-                if np.isnan(outputArray[i]):
-                    wr.warn("RK4: Output value is NaN", RuntimeWarning)
-                if np.isinf(outputArray[i]):
-                    wr.warn("RK4: Output value is infinite", RuntimeWarning)
-                self.varDict.update({output: outputArray})
-                if self.thresholdDict.get(output) is not None:
-                    if outputArray[i] < self.thresholdDict.get(output):
+                outputArray[t] = outputSum
+                if np.isnan(outputArray[t]) or np.isinf(outputArray[t]):
+                    wr.warn("RK4: Output value is invalid", RuntimeWarning)
+                    self.varDict.update({output: outputArray})
+                    for variable in self.varDict:
+                        self.varDict.update({variable: self.varDict.get(variable)[:t - 1]})
+                    return
+                else:
+                    if self.thresholdDict.get(output) is not None:
                         self.varDict.update({output: outputArray})
-                        for variable in self.varDict:
-                            self.varDict.update({variable: self.varDict.get(variable)[:i - 1]})
-                        return
+                        if outputArray[t] < self.thresholdDict.get(output):
+                            for variable in self.varDict:
+                                self.varDict.update({variable: self.varDict.get(variable)[:t - 1]})
+                            return
 
     def euler(self) -> None:
 
@@ -451,7 +454,7 @@ def _HYDRO(inputList: np.ndarray):
     return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2)
 
 
-def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
@@ -465,7 +468,7 @@ def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
             r = diffS.varDict.get("r")[-1] / 1e5
             m = diffS.varDict.get("m")[-1] / 2e33
-            print("Calculation {0} with rho = {1}\n"
+            print("RK4: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
             plt.scatter(r, m, color=color, marker=marker)
         else:
@@ -473,7 +476,29 @@ def _testTOV(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'
     # plt.show()
 
 
-def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+    for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
+        diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
+        diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
+        diffEqs = DifferentialEquationSystem([diffM, diffP])
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"p": 1e-5})
+        diffS.euler()
+        if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
+            r = diffS.varDict.get("r")[-1] / 1e5
+            m = diffS.varDict.get("m")[-1] / 2e33
+            print("EULER: Calculation {0} with rho = {1}\n"
+                  "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+            plt.scatter(r, m, color=color, marker=marker)
+        else:
+            print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    # plt.show()
+
+
+def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
@@ -487,7 +512,30 @@ def _testHYDRO(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
             r = diffS.varDict.get("r")[-1] / 1e5
             m = diffS.varDict.get("m")[-1] / 2e33
-            print("Calculation {0} with rho = {1}\n"
+            print("RK4: Calculation {0} with rho = {1}\n"
+                  "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
+            plt.scatter(r, m, color=color, marker=marker)
+        else:
+            print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    # plt.show()
+
+
+def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+    for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
+        diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
+        diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
+        diffEqs = DifferentialEquationSystem([diffM, diffP])
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e9)
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"p": 1e-5})
+        diffS.addThreshold({"m": 0})
+        diffS.euler()
+        if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
+            r = diffS.varDict.get("r")[-1] / 1e5
+            m = diffS.varDict.get("m")[-1] / 2e33
+            print("Euler: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
             plt.scatter(r, m, color=color, marker=marker)
         else:
@@ -515,26 +563,32 @@ def _testN(rhoH=1e4):
 
 
 # Polytropic
-_testTOV(rhoMin=1e7, rhoMax=1e12)
-_testHYDRO(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
-plt.grid()
-plt.show()
-#
-#
+# _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^")
+# _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s")
+# _testTOVRK4(rhoMin=1e7, rhoMax=1e12)
+# _testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
+# plt.grid()
+# plt.show()
+
+
 # # White Dwarfs
 # _CreateSpline()
-# _testTOV()
-# _testHYDRO(color="b", marker="o")
+# _testTOVRK4()
+# _testHYDRORK4(color="b", marker="o")
+# _testTOVEuler(color="k", marker="^")
+# _testHYDROEuler(color="g", marker="s")
 # plt.grid()
 # plt.show()
-#
-#
-# # Neutron stars
-# _CreateNeutronStarSpline()
-# _testTOV(rhoMin=2e14, rhoMax=7e15, rhoH=4e3, rhoNum=30)
-# _testHYDRO(rhoMin=2e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="b", marker="o")
-# plt.grid()
-# plt.show()
+
+
+# Neutron stars
+_CreateNeutronStarSpline()
+_testTOVEuler(rhoMin=4e14, rhoMax=3e15, rhoH=3.7e3, rhoNum=50)
+# _testHYDROEuler(rhoMin=2.5e14, rhoMax=3e15, rhoH=5e3, rhoNum=30, color="b", marker="o")
+_testTOVRK4(rhoMin=4e14, rhoMax=3e15, rhoH=3.7e3, rhoNum=50, color="g", marker="s")
+# _testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="k", marker="^")
+plt.grid()
+plt.show()
 
 # _testN()
 # plt.grid()
