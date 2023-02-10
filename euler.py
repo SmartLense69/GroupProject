@@ -42,7 +42,7 @@ def euler(stop, h, n, func1, ic1, func2=None, ic2=None):
             phisol[i] = phisol[i-1] + h*func1(xivalues[i-1], n, thetasol[i-1], phisol[i-1])
         thetasol[i] = thetasol[i-1] + h*func2(phisol[i-1])
 
-    return xivalues, thetasol
+    return xivalues, thetasol, phisol
 
 
 # output0 = euler(5, 0.001, 0, phigrad, 0, thetagrad, 1)

@@ -49,10 +49,10 @@ def secondorder(stop, h, n, func1, ic1, func2, ic2):
         # phisol[i] = phisol[i - 1] + h * func1(xivalues[i - 1] + 0.5*h, n, thetasol[i - 1], phisol[i - 1]+ 0.5*h*func1(xivalues[i-1], n, thetasol[i-1], phisol[i-1]))
         # thetasol[i] = thetasol[i - 1] + h * func2(phisol[i - 1])
 
-    return xivalues, thetasol
+    return xivalues, thetasol, phisol
 
-for k in [0, 1, 5]:
-    output = secondorder(5, 0.001, k, phigrad, 0, thetagrad, 1)
-    plt.plot(output[0], output[1], label='n=0')
-
-plt.show()
+# for k in [0, 1, 5]:
+#     output = secondorder(5, 0.001, k, phigrad, 0, thetagrad, 1)
+#     plt.plot(output[0], output[1], label='n=0')
+#
+# plt.show()

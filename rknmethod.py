@@ -63,9 +63,9 @@ def rknorder(stop, h, n, func1, ic1, func2, ic2):
 
     return xivalues, thetasol
 
-for k in [0, 1, 5]:
-    output = rknorder(1, 0.001, k, phigrad, 0, thetagrad, 1)
-    plt.plot(output[0], output[1], label='n={0}'.format(k))
-
-plt.legend()
-plt.show()
+# for k in [0, 1, 5]:
+#     output = rknorder(1, 0.001, k, phigrad, 0, thetagrad, 1)
+#     plt.plot(output[0], output[1], label='n={0}'.format(k))
+#
+# plt.legend()
+# plt.show()
