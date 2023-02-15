@@ -272,50 +272,98 @@ class DifferentialSolver:
         self.__resetVarDict()
 
     def rk4(self) -> None:
+        """
+        Solves the differential equation system via
+        Runge-Kutta-4th Order.
+        """
+
         self.__resetVarDict()
+
         NUMK: int = 4
-        for t in range(1, self.stepNum):
-            # if t % self.stepSize == 0 or t == self.stepNum:
-            #    print("Iteration {0} from {1}:\t{2}%".format(t, self.stepNum, np.round((t/self.stepNum)*100, 2)))
+        """
+        This is the number of coefficients for the RK4 algorithm.
+        It is 4 and constant.
+        """
+
+        # Iterate through the steps
+        for _i in range(1, self.stepNum):
+
             coefDict = {}
+            """
+            The coefficient Dictionary keeps track of the k-coefficients for each
+            differential equation.
+            
+            
+                **Example:**
+                
+                (TOV) {m: [j1, j2, j3, j4], p: [k1, k2, k3, k4]}
+            """
+
+            # Fill the coefficient list with the output variables of the
+            # different differential equations with empty arrays of size NUMK
             for variable in self.diffSystem.listOutput:
                 coefDict[variable] = np.zeros(NUMK)
+
+            # We need four coefficients, so iterate through them
             for j in range(0, NUMK):
+
+                # For each coefficient...
                 for coef in coefDict.keys():
+
+                    # ... get the corresponding differential equation
                     diff = self.diffSystem.getByOutput(coef)
+
+                    # This is for the function call
                     inputList = []
+
+                    # ... iterate through the inputs of the differential equation
                     for inputVar in diff.inputVarNames:
+
+                        # ... if the input variable is a "time-dependent" one,
+                        # add r[i - 1] + c[j + 1] * h
                         if inputVar in diff.timeVar:
-                            inputList.append(self.varDict.get(inputVar)[t - 1] +
+                            inputList.append(self.varDict.get(inputVar)[_i - 1] +
                                              cf.RK4.C[j + 1] * self.stepSize)
+
+                        # ... if the input variable is a variable associated
+                        # with coefficients, do a[j + 1, coefNum + 1] * coef[coefNum]
+
                         elif inputVar in coefDict:
-                            sumInput = self.varDict.get(inputVar)[t - 1]
-                            for coefNum in range(0, j):
+                            sumInput = self.varDict.get(inputVar)[_i - 1]
+
+                            # E.g. if j = 4 atm, go up only to the third coefficient
+                            for coefNum in range(0, j - 1):
                                 sumInput += cf.RK4.A[j + 1, coefNum + 1] * coefDict.get(inputVar)[coefNum]
                             inputList.append(sumInput)
                         else:
-                            print("You are not supposed to be here.")
+                            inputList.append(self.varDict.get(inputVar)[_i - 1])
+
+                    # The output is the coefficient
                     output = self.stepSize * diff.functionCall(inputList)
                     coefDict.get(coef)[j] = output
-                    # coefDict.update({coef: coefDict.get(coef)})
+
+            # Combine all coefficients to get the ith element
             for output in self.diffSystem.listOutput:
                 outputArray = self.varDict.get(output)
-                outputSum = outputArray[t - 1]
+                outputSum = outputArray[_i - 1]
                 for m in range(1, NUMK + 1):
                     outputSum += cf.RK4.B[m] * coefDict.get(output)[m - 1]
-                outputArray[t] = outputSum
-                if np.isnan(outputArray[t]) or np.isinf(outputArray[t]):
+                outputArray[_i] = outputSum
+
+                # Fail-safe if a value is nan or inf
+                # Cut the array at the place where the invalid value was encountered
+                if np.isnan(outputArray[_i]) or np.isinf(outputArray[_i]):
                     wr.warn("RK4: Output value is invalid", RuntimeWarning)
                     self.varDict.update({output: outputArray})
                     for variable in self.varDict:
-                        self.varDict.update({variable: self.varDict.get(variable)[:t - 1]})
+                        self.varDict.update({variable: self.varDict.get(variable)[:_i - 1]})
                     return
                 else:
                     if self.thresholdDict.get(output) is not None:
                         self.varDict.update({output: outputArray})
-                        if outputArray[t] < self.thresholdDict.get(output):
+                        if outputArray[_i] < self.thresholdDict.get(output):
                             for variable in self.varDict:
-                                self.varDict.update({variable: self.varDict.get(variable)[:t - 1]})
+                                self.varDict.update({variable: self.varDict.get(variable)[:_i - 1]})
                             return
 
     def euler(self) -> None:
@@ -454,12 +502,12 @@ def _HYDRO(inputList: np.ndarray):
     return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2)
 
 
-def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
         diffEqs = DifferentialEquationSystem([diffM, diffP])
-        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
         rMod = diffS.varDict.get("r")
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
@@ -476,12 +524,12 @@ def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker=
     # plt.show()
 
 
-def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
         diffEqs = DifferentialEquationSystem([diffM, diffP])
-        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
         rMod = diffS.varDict.get("r")
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
@@ -498,12 +546,12 @@ def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
     # plt.show()
 
 
-def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
         diffEqs = DifferentialEquationSystem([diffM, diffP])
-        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e11)
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
         rMod = diffS.varDict.get("r")
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
@@ -520,17 +568,16 @@ def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
     # plt.show()
 
 
-def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v'):
+def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
         diffEqs = DifferentialEquationSystem([diffM, diffP])
-        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=2e9)
+        diffS = DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
         rMod = diffS.varDict.get("r")
         rMod[0] = 1
         diffS.varDict.update({"r": rMod})
         diffS.addThreshold({"p": 1e-5})
-        diffS.addThreshold({"m": 0})
         diffS.euler()
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
             r = diffS.varDict.get("r")[-1] / 1e5
@@ -563,30 +610,29 @@ def _testN(rhoH=1e4):
 
 
 # Polytropic
-# _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^")
-# _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s")
-# _testTOVRK4(rhoMin=1e7, rhoMax=1e12)
-# _testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o")
-# plt.grid()
-# plt.show()
+_testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
+_testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
+_testTOVRK4(rhoMin=1e7, rhoMax=1e12, stopTime=2e11)
+_testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o", stopTime=2e11)
+plt.grid()
+plt.show()
 
-
-# # White Dwarfs
-# _CreateSpline()
-# _testTOVRK4()
-# _testHYDRORK4(color="b", marker="o")
-# _testTOVEuler(color="k", marker="^")
-# _testHYDROEuler(color="g", marker="s")
-# plt.grid()
-# plt.show()
+# White Dwarfs
+_CreateSpline()
+_testTOVRK4()
+_testHYDRORK4(color="b", marker="o")
+_testTOVEuler(color="k", marker="^")
+_testHYDROEuler(color="g", marker="s")
+plt.grid()
+plt.show()
 
 
 # Neutron stars
 _CreateNeutronStarSpline()
-_testTOVEuler(rhoMin=4e14, rhoMax=3e15, rhoH=3.7e3, rhoNum=50)
-# _testHYDROEuler(rhoMin=2.5e14, rhoMax=3e15, rhoH=5e3, rhoNum=30, color="b", marker="o")
-_testTOVRK4(rhoMin=4e14, rhoMax=3e15, rhoH=3.7e3, rhoNum=50, color="g", marker="s")
-# _testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, rhoNum=30, color="k", marker="^")
+_testTOVEuler(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
+_testHYDROEuler(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
+_testTOVRK4(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, color="g", marker="s", stopTime=1e7)
+_testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="k", marker="^")
 plt.grid()
 plt.show()
 
