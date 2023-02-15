@@ -1,0 +1,11 @@
+class Param:
+    LANE_EMDEN:     list[str] = ["-le", "--lane-emden"]
+    POLYTROPIC:     list[str] = ["-p", "--polytropic"]
+    WHITE_DWARF:    list[str] = ["-w", "--white-dwarf"]
+    NEUTRON_STAR:   list[str] = ["-ns", "--neutron-star"]
+    RK4:            list[str] = ["-rk4", "--runge-kutta-4"]
+    EULER:          list[str] = ["-e", "--euler"]
+    DENSITY:        list[str] = ["-rho=", "--density="]
+    DENSITY_MIN:    list[str] = ["-rm=", "--minDensity="]
+    DENSITY_MAX:    list[str] = ["-rM=", "--maxDensity"]
+    DENSITY_STEP:   list[str] = ["-rS=", "--stepDensity="]

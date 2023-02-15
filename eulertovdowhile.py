@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import euler_CR as eCR
 import diffequation as de
-import config_CR as cf
+import CR_config as cf
 
 # this is so that the state functions can be varied
 def statefunc(K, n, P=None, rho=None):

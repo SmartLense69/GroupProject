@@ -3,13 +3,14 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.interpolate import CubicSpline
 
-import config_CR as cf
+import CR_config as cf
 
 # np.seterr(all='raise')
 # wr.simplefilter('error')
 
 _RHO = 0
 _P = 0
+
 
 class InputVariableDuplicateError(Exception):
     """
