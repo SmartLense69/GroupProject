@@ -5,7 +5,7 @@ class Param:
     NEUTRON_STAR:   list[str] = ["-ns", "--neutron-star"]
     RK4:            list[str] = ["-rk4", "--runge-kutta-4"]
     EULER:          list[str] = ["-e", "--euler"]
-    DENSITY:        list[str] = ["-rho=", "--density="]
+    DENSITY:        list[str] = ["-rho", "--density"]
     DENSITY_MIN:    list[str] = ["-rm=", "--minDensity="]
     DENSITY_MAX:    list[str] = ["-rM=", "--maxDensity"]
     DENSITY_STEP:   list[str] = ["-rS=", "--stepDensity="]
