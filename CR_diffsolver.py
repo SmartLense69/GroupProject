@@ -248,7 +248,7 @@ class DifferentialSolver:
         for outputVariable, diff in zip(self.diffSystem.listOutput, self.diffSystem.listDiffs):
             self.varDict[outputVariable][0] = diff.initialCondition
 
-    def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float):
+    def __init__(self, diffSystem: DifferentialEquationSystem, stepSize: float, stopTime: float, stepBegin: float = 1):
         """
         Creates a differential equation solver object.
         :param diffSystem: A set of differential equations
@@ -259,7 +259,7 @@ class DifferentialSolver:
         self.varDict = {}
         self.thresholdDict = {}
         self.diffSystem = diffSystem
-        self.steps = np.arange(1, stopTime + stepSize, stepSize)
+        self.steps = np.arange(stepBegin, stopTime + stepSize, stepSize)
         self.stepNum = self.steps.size
         """
         The number of elements in the value array in varDict. 
@@ -436,7 +436,7 @@ def _testLaneEmden() -> None:
     differentialSystem = DifferentialEquationSystem([diffEq1, diffEq2])
 
     # Use it to create a differential equation solver.
-    differentialSolver = DifferentialSolver(differentialSystem, 0.001, 35)
+    differentialSolver = DifferentialSolver(differentialSystem, 0.0005, 35, stepBegin=0)
 
     # Add a threshold for the variable theta.
     differentialSolver.addThreshold({"theta": 1e-5})
@@ -444,7 +444,8 @@ def _testLaneEmden() -> None:
     # Iterate through all the n's and plot them
     for n in np.arange(0, 5.5, 0.5):
         cf.Var.n = n
-        differentialSolver.euler()
+        differentialSolver.rk4()
+        print(n)
         plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"), label="$n = {0}$".format(cf.Var.n))
     cf.resetN()
     plt.axhline(0, color='gray', linestyle='dashed')
@@ -515,7 +516,7 @@ def _HYDRO(inputList: np.ndarray):
     return - ((cf.G.whatUnitHuh * m * _RHO(P)) / r ** 2)
 
 
-def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10, plot=True):
 
     dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
@@ -538,11 +539,12 @@ def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker=
 
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
-    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="TOV")
-    # plt.show()
+    if plot:
+        plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="TOV")
+    return dataValues[:, 0], dataValues[:, 1]
 
 
-def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10, plot=True):
 
     dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
@@ -565,11 +567,12 @@ def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
 
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    if plot:
         plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="TOV")
-    # plt.show()
+    return dataValues[:, 0], dataValues[:, 1]
 
 
-def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10, plot=True):
     dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
@@ -590,11 +593,12 @@ def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
             dataValues[i, 1] = m
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
-    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
-    # plt.show()
+    if plot:
+        plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
+    return dataValues[:, 0], dataValues[:, 1]
 
 
-def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10, plot=True):
     dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
@@ -615,8 +619,9 @@ def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', mar
             dataValues[i, 1] = m
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
-    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
-    # plt.show()
+    if plot:
+        plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
+    return dataValues[:, 0], dataValues[:, 1]
 
 
 def _testN(rhoH=1e4):
@@ -638,7 +643,8 @@ def _testN(rhoH=1e4):
         print("Calculation {0} at n={1}".format(i, cf.Var.n))
 
 
-plt.rcParams.update({'font.size' : 18, "font.family" : "Times New Roman", "text.usetex" : True})
+# plt.rcParams.update({'font.size' : 18, "font.family" : "Times New Roman", "text.usetex" : True})
+plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
 
 # Lane Emden
 plt.figure(figsize=(9, 8), dpi=100)
@@ -653,8 +659,8 @@ plt.show()
 plt.figure(figsize=(9, 8), dpi=100)
 # _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
 # _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
-_testTOVRK4(rhoMin=1e7, rhoMax=1e12, stopTime=2e11)
 _testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o", stopTime=2e11)
+_testTOVRK4(rhoMin=1e7, rhoMax=1e12, stopTime=2e11)
 plt.xlabel("radius [km]")
 plt.ylabel("mass [$M_{\odot}$]")
 plt.grid()
@@ -664,8 +670,8 @@ plt.show()
 # White Dwarfs
 _CreateSpline()
 plt.figure(figsize=(9, 8), dpi=100)
-_testTOVRK4()
 _testHYDRORK4(color="b", marker="o")
+_testTOVRK4()
 # _testTOVEuler(color="k", marker="^")
 # _testHYDROEuler(color="g", marker="s")
 plt.xlabel("radius [km]")
@@ -680,8 +686,8 @@ _CreateNeutronStarSpline()
 plt.figure(figsize=(9, 8), dpi=100)
 # _testTOVEuler(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
 # _testHYDROEuler(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
-_testTOVRK4(rhoMin=2.5e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
-_testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
+_testHYDRORK4(rhoMin=2.65e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
+_testTOVRK4(rhoMin=2.65e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
 plt.xlabel("radius [km]")
 plt.ylabel("mass [$M_{\odot}$]")
 plt.grid()
