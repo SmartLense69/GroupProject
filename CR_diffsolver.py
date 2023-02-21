@@ -638,15 +638,10 @@ def _testN(rhoH=1e4):
         print("Calculation {0} at n={1}".format(i, cf.Var.n))
 
 
-plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
-
-plt.figure(figsize=(8, 8), dpi=100)
-_CreateSpline(True)
-_CreateNeutronStarSpline(True)
-
+plt.rcParams.update({'font.size' : 18, "font.family" : "Times New Roman", "text.usetex" : True})
 
 # Lane Emden
-plt.figure(figsize=(8, 8), dpi=100)
+plt.figure(figsize=(9, 8), dpi=100)
 _testLaneEmden()
 plt.xlabel("Dimensionless radius $\\xi$")
 plt.ylabel("Dimensionless density $\\theta$")
@@ -655,26 +650,26 @@ plt.legend()
 plt.show()
 
 # Polytropic
-plt.figure(figsize=(8, 8), dpi=100)
+plt.figure(figsize=(9, 8), dpi=100)
 # _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
 # _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
 _testTOVRK4(rhoMin=1e7, rhoMax=1e12, stopTime=2e11)
 _testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o", stopTime=2e11)
-plt.xlabel("radius in km")
-plt.ylabel("mass in $M_{\odot}$")
+plt.xlabel("radius [km]")
+plt.ylabel("mass [$M_{\odot}$]")
 plt.grid()
 plt.legend()
 plt.show()
 
 # White Dwarfs
 _CreateSpline()
-plt.figure(figsize=(8, 8), dpi=100)
+plt.figure(figsize=(9, 8), dpi=100)
 _testTOVRK4()
 _testHYDRORK4(color="b", marker="o")
 # _testTOVEuler(color="k", marker="^")
 # _testHYDROEuler(color="g", marker="s")
-plt.xlabel("radius in km")
-plt.ylabel("mass in $M_{\odot}$")
+plt.xlabel("radius [km]")
+plt.ylabel("mass [$M_{\odot}$]")
 plt.grid()
 plt.legend()
 plt.show()
@@ -682,15 +677,17 @@ plt.show()
 
 # Neutron stars
 _CreateNeutronStarSpline()
-plt.figure(figsize=(8, 8), dpi=100)
+plt.figure(figsize=(9, 8), dpi=100)
 # _testTOVEuler(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
 # _testHYDROEuler(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
-_testTOVRK4(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
+_testTOVRK4(rhoMin=2.5e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
 _testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
-plt.xlabel("radius in km")
-plt.ylabel("mass in $M_{\odot}$")
+plt.xlabel("radius [km]")
+plt.ylabel("mass [$M_{\odot}$]")
 plt.grid()
 plt.legend()
 plt.show()
 
-
+plt.figure(figsize=(9, 8), dpi=100)
+_CreateSpline(True)
+_CreateNeutronStarSpline(True)
