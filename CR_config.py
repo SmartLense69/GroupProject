@@ -11,6 +11,11 @@ Example:
 import numpy as np
 
 
+class Sys:
+
+    threads = 16
+
+
 class C:
     """
     Speed of light.
