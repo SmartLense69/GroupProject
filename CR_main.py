@@ -242,6 +242,8 @@ if __name__ == '__main__':
             else:
                 print("Please enter a parameter for density.")
                 sys.exit(ec.MISSING_ARGUMENT)
+        elif argv[1] == P.POLYTROPIC[0] or \
+                argv[1] == P.POLYTROPIC[1]:
 
         else:
             print("{0} is not a valid argument.\n"

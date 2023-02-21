@@ -38,6 +38,10 @@ class G:
     whatUnitHuh = 6.67384e-8
 
 
+def resetN():
+    Var.n = 1.5
+
+
 class Var:
     """
     Variables like K (equation of state coefficient) or n.
@@ -60,6 +64,6 @@ class RK4:
                      [None, None, None, None],
                      [None, 1 / 2, None, None],
                      [None, 0, 1 / 2, None],
-                     [None, 0, 0, 1]], dtype=np.float128)
-    B = np.array([None, 1 / 6, 1 / 3, 1 / 3, 1 / 6], dtype=np.float128)
-    C = np.array([None, 0, 1 / 2, 1 / 2, 1], dtype=np.float128)
+                     [None, 0, 0, 1]], dtype=np.float64)
+    B = np.array([None, 1 / 6, 1 / 3, 1 / 3, 1 / 6], dtype=np.float64)
+    C = np.array([None, 0, 1 / 2, 1 / 2, 1], dtype=np.float64)

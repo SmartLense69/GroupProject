@@ -445,11 +445,9 @@ def _testLaneEmden() -> None:
     for n in np.arange(0, 5.5, 0.5):
         cf.Var.n = n
         differentialSolver.euler()
-        print(n)
-        plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"))
+        plt.plot(differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta"), label="$n = {0}$".format(cf.Var.n))
+    cf.resetN()
     plt.axhline(0, color='gray', linestyle='dashed')
-    plt.grid()
-    plt.show()
 
 
 def _RHO(inputList: np.ndarray):
@@ -462,15 +460,22 @@ def _P(inputList: np.ndarray):
     return cf.Var.K * (rho ** (1 + 1 / cf.Var.n))
 
 
-def _CreateSpline():
+def _CreateSpline(plot=False):
     cubicSplineData = np.loadtxt("EoS_Spline_Data.csv", delimiter='\t').transpose()
     global _RHO
     _RHO = CubicSpline(cubicSplineData[1], cubicSplineData[0], extrapolate=True)
     global _P
     _P = CubicSpline(cubicSplineData[0], cubicSplineData[1], extrapolate=True)
+    if plot:
+        vals = np.linspace(cubicSplineData[0, 0], cubicSplineData[0, -1], 100)
+        plt.plot(vals, _P(vals), color="r")
+        plt.xlabel("Density in g/ccm")
+        plt.ylabel("Pressure in Pascal")
+        plt.grid()
+        plt.show()
 
 
-def _CreateNeutronStarSpline():
+def _CreateNeutronStarSpline(plot=False):
     cubicSplineSlyData = np.loadtxt("wrishikData/Neutron-Star-Structure-master/SLy.txt").transpose()
     rhoData = cubicSplineSlyData[2]
     pressureData = cubicSplineSlyData[3]
@@ -478,6 +483,13 @@ def _CreateNeutronStarSpline():
     _RHO = CubicSpline(pressureData, rhoData, extrapolate=True)
     global _P
     _P = CubicSpline(rhoData, pressureData, extrapolate=True)
+    if plot:
+        vals = np.linspace(rhoData[0], rhoData[-1], 100)
+        plt.plot(vals, _P(vals), color="b")
+        plt.xlabel("Density in g/ccm")
+        plt.ylabel("Pressure in Pascal")
+        plt.grid()
+        plt.show()
 
 
 def _M(inputList: np.ndarray):
@@ -504,6 +516,8 @@ def _HYDRO(inputList: np.ndarray):
 
 
 def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+
+    dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
@@ -519,13 +533,18 @@ def _testTOVRK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker=
             m = diffS.varDict.get("m")[-1] / 2e33
             print("RK4: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
-            plt.scatter(r, m, color=color, marker=marker)
+            dataValues[i, 0] = r
+            dataValues[i, 1] = m
+
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="TOV")
     # plt.show()
 
 
 def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+
+    dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _TOV, _P(rho), 2)
@@ -541,13 +560,17 @@ def _testTOVEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
             m = diffS.varDict.get("m")[-1] / 2e33
             print("EULER: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
-            plt.scatter(r, m, color=color, marker=marker)
+            dataValues[i, 0] = r
+            dataValues[i, 1] = m
+
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+        plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="TOV")
     # plt.show()
 
 
 def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+    dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
@@ -563,13 +586,16 @@ def _testHYDRORK4(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marke
             m = diffS.varDict.get("m")[-1] / 2e33
             print("RK4: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
-            plt.scatter(r, m, color=color, marker=marker)
+            dataValues[i, 0] = r
+            dataValues[i, 1] = m
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
     # plt.show()
 
 
 def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', marker='v', stopTime=2e10):
+    dataValues = np.zeros((rhoNum, 2))
     for i, rho in enumerate(np.geomspace(rhoMin, rhoMax, rhoNum)):
         diffM = DifferentialEquation(["p", "r"], "m", _M, cf.Var.m, 1)
         diffP = DifferentialEquation(["m", "p", "r"], "p", _HYDRO, _P(rho), 2)
@@ -585,9 +611,11 @@ def _testHYDROEuler(rhoMin=1e6, rhoMax=1e14, rhoH=1e5, rhoNum=30, color='r', mar
             m = diffS.varDict.get("m")[-1] / 2e33
             print("Euler: Calculation {0} with rho = {1}\n"
                   "gave rise to r = {2} and m = {3}\n".format(i, rho, r, m))
-            plt.scatter(r, m, color=color, marker=marker)
+            dataValues[i, 0] = r
+            dataValues[i, 1] = m
         else:
             print("Calculation {0} at rho = {1} skipped!".format(i, rho))
+    plt.scatter(dataValues[:, 0], dataValues[:, 1], color=color, marker=marker, label="Hydrostatic")
     # plt.show()
 
 
@@ -610,34 +638,59 @@ def _testN(rhoH=1e4):
         print("Calculation {0} at n={1}".format(i, cf.Var.n))
 
 
+plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
+
+plt.figure(figsize=(8, 8), dpi=100)
+_CreateSpline(True)
+_CreateNeutronStarSpline(True)
+
+
+# Lane Emden
+plt.figure(figsize=(8, 8), dpi=100)
+_testLaneEmden()
+plt.xlabel("Dimensionless radius $\\xi$")
+plt.ylabel("Dimensionless density $\\theta$")
+plt.grid()
+plt.legend()
+plt.show()
+
 # Polytropic
-_testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
-_testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
+plt.figure(figsize=(8, 8), dpi=100)
+# _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
+# _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
 _testTOVRK4(rhoMin=1e7, rhoMax=1e12, stopTime=2e11)
 _testHYDRORK4(rhoMin=1e7, rhoMax=1e12, color="b", marker="o", stopTime=2e11)
+plt.xlabel("radius in km")
+plt.ylabel("mass in $M_{\odot}$")
 plt.grid()
+plt.legend()
 plt.show()
 
 # White Dwarfs
 _CreateSpline()
+plt.figure(figsize=(8, 8), dpi=100)
 _testTOVRK4()
 _testHYDRORK4(color="b", marker="o")
-_testTOVEuler(color="k", marker="^")
-_testHYDROEuler(color="g", marker="s")
+# _testTOVEuler(color="k", marker="^")
+# _testHYDROEuler(color="g", marker="s")
+plt.xlabel("radius in km")
+plt.ylabel("mass in $M_{\odot}$")
 plt.grid()
+plt.legend()
 plt.show()
 
 
 # Neutron stars
 _CreateNeutronStarSpline()
-_testTOVEuler(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
-_testHYDROEuler(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
-_testTOVRK4(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, color="g", marker="s", stopTime=1e7)
-_testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="k", marker="^")
+plt.figure(figsize=(8, 8), dpi=100)
+# _testTOVEuler(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
+# _testHYDROEuler(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
+_testTOVRK4(rhoMin=4e14, rhoMax=4e15, rhoH=1e3, stopTime=1e7)
+_testHYDRORK4(rhoMin=2.5e14, rhoMax=1e15, rhoH=4e3, color="b", marker="o")
+plt.xlabel("radius in km")
+plt.ylabel("mass in $M_{\odot}$")
 plt.grid()
+plt.legend()
 plt.show()
 
-# _testN()
-# plt.grid()
-# plt.legend()
-# plt.show()
+
