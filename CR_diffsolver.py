@@ -657,6 +657,33 @@ def _testN(rhoH=1e4):
 plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
 
 
+def _plotLaneEmdenAnalytical(n, num=1000):
+    match n:
+        case 0:
+            xi = np.linspace(0, 5, num)
+            val = -(1 / 6) * (xi ** 2) + 1
+            plt.plot(xi, val, label="Analytical solution for n=0")
+        case 1:
+            xi = np.linspace(0, 5, num)
+            val = np.sin(xi) / xi
+            plt.plot(xi, val, label="Analytical solution for n=1")
+        case 5:
+            xi = np.linspace(0, 5, num)
+            val = 1 / (np.sqrt(1 + ((xi ** 2) / 3)))
+            plt.plot(xi, val, label="Analytical solution for n=5")
+
+
+plt.figure(figsize=(9, 8), dpi=100)
+_plotLaneEmdenAnalytical(0)
+_plotLaneEmdenAnalytical(1)
+_plotLaneEmdenAnalytical(5)
+plt.xlabel("Dimensionless radius $\\xi$")
+plt.ylabel("Dimensionless density $\\theta$")
+plt.grid()
+plt.legend()
+plt.axhline(0, color='gray', linestyle='dashed')
+plt.show()
+
 # Lane Emden
 plt.figure(figsize=(9, 8), dpi=100)
 _testLaneEmden()
@@ -691,7 +718,6 @@ plt.grid()
 plt.legend()
 plt.show()
 
-
 # Neutron stars
 _CreateNeutronStarSpline()
 plt.figure(figsize=(9, 8), dpi=100)
@@ -709,3 +735,5 @@ plt.figure(figsize=(9, 8), dpi=100)
 _CreateSplinePolytropic(True)
 _CreateSplineWhiteDwarf(True)
 _CreateNeutronStarSpline(True)
+
+
