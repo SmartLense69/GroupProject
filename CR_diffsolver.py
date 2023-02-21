@@ -461,7 +461,17 @@ def _P(inputList: np.ndarray):
     return cf.Var.K * (rho ** (1 + 1 / cf.Var.n))
 
 
-def _CreateSpline(plot=False):
+def _CreateSplinePolytropic(plot=False):
+    if plot:
+        vals = np.linspace(1e2, 1e14, 100)
+        plt.plot(vals, _P(vals), color="g")
+        plt.xlabel("Density in g/ccm")
+        plt.ylabel("Pressure in Pascal")
+        plt.grid()
+        plt.show()
+
+
+def _CreateSplineWhiteDwarf(plot=False):
     cubicSplineData = np.loadtxt("EoS_Spline_Data.csv", delimiter='\t').transpose()
     global _RHO
     _RHO = CubicSpline(cubicSplineData[1], cubicSplineData[0], extrapolate=True)
@@ -646,6 +656,7 @@ def _testN(rhoH=1e4):
 # plt.rcParams.update({'font.size' : 18, "font.family" : "Times New Roman", "text.usetex" : True})
 plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
 
+
 # Lane Emden
 plt.figure(figsize=(9, 8), dpi=100)
 _testLaneEmden()
@@ -668,7 +679,7 @@ plt.legend()
 plt.show()
 
 # White Dwarfs
-_CreateSpline()
+_CreateSplineWhiteDwarf()
 plt.figure(figsize=(9, 8), dpi=100)
 _testHYDRORK4(color="b", marker="o")
 _testTOVRK4()
@@ -695,5 +706,6 @@ plt.legend()
 plt.show()
 
 plt.figure(figsize=(9, 8), dpi=100)
-_CreateSpline(True)
+_CreateSplinePolytropic(True)
+_CreateSplineWhiteDwarf(True)
 _CreateNeutronStarSpline(True)
