@@ -12,5 +12,5 @@ if __name__ == '__main__':
 
     plotter.plotBegin()
     plotter.plotLaneEmden(plotEuler, plotRK4, plotRKF, n)
-    # plotter.plotLaneEmdenAnalytical(n)
+    plotter.plotLaneEmdenAnalytical(n)
     plotter.plotEnd()

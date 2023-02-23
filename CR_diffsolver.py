@@ -673,29 +673,29 @@ def _plotLaneEmdenAnalytical(n, num=1000):
             plt.plot(xi, val, label="Analytical solution for n=5")
 
 
-def _runTests():
-
-    plt.figure(figsize=(9, 8), dpi=100)
-    _plotLaneEmdenAnalytical(0)
-    _plotLaneEmdenAnalytical(1)
-    _plotLaneEmdenAnalytical(5)
-    plt.xlabel("Dimensionless radius $\\xi$")
-    plt.ylabel("Dimensionless density $\\theta$")
-    plt.grid()
-    plt.legend()
-    plt.axhline(0, color='gray', linestyle='dashed')
-    plt.show()
+def renderTest():
+    # plt.figure(figsize=(9, 8), dpi=100)
+    # _plotLaneEmdenAnalytical(0)
+    # _plotLaneEmdenAnalytical(1)
+    # _plotLaneEmdenAnalytical(5)
+    # plt.xlabel("Dimensionless radius $\\xi$")
+    # plt.ylabel("Dimensionless density $\\theta$")
+    # plt.grid()
+    # plt.legend()
+    # plt.axhline(0, color='gray', linestyle='dashed')
+    # plt.show()
 
     # Lane Emden
-    plt.figure(figsize=(9, 8), dpi=100)
+    # plt.figure(figsize=(9, 8), dpi=100)
     _testLaneEmden()
-    plt.xlabel("Dimensionless radius $\\xi$")
-    plt.ylabel("Dimensionless density $\\theta$")
-    plt.grid()
-    plt.legend()
-    plt.show()
+    # plt.xlabel("Dimensionless radius $\\xi$")
+    # plt.ylabel("Dimensionless density $\\theta$")
+    # plt.grid()
+    # plt.legend()
+    # plt.show()
 
     # Polytropic
+    _CreateSplinePolytropic(False)
     plt.figure(figsize=(9, 8), dpi=100)
     # _testTOVEuler(rhoMin=1e7, rhoMax=1e12, color="k", marker="^", stopTime=2e11)
     # _testHYDROEuler(rhoMin=1e7, rhoMax=1e12, color="g", marker="s", stopTime=2e11)
@@ -738,4 +738,4 @@ def _runTests():
     _CreateSplineWhiteDwarf(True)
     _CreateNeutronStarSpline(True)
 
-
+# renderTest()

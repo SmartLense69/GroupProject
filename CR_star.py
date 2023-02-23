@@ -6,18 +6,7 @@ from scipy.interpolate import CubicSpline
 import CR_config as cf
 import numpy as np
 import CR_diffsolver as df
-
-
-class InvalidNumericalMethod(Exception):
-
-    def __init__(self, wrongMethod: str):
-        super().__init__("{0} is not a valid numerical method.".format(wrongMethod))
-
-
-class InvalidPressureMethod(Exception):
-
-    def __init__(self, wrongMethod):
-        super().__init__("{0} is not a valid pressure correction method".format(wrongMethod))
+import CR_exceptions as ex
 
 
 class Star(abc.ABC):
@@ -47,9 +36,47 @@ class Star(abc.ABC):
         P = inputList[1]
         r = inputList[2]
         return - ((cf.G.whatUnitHuh * m * self.densityEOS(P)) / r ** 2) \
-            * (1 + P / (self.densityEOS(P) * cf.C.cmtrPsec ** 2)) \
-            * (1 + (4 * np.pi * r ** 3 * P) / (m * cf.C.cmtrPsec ** 2)) \
-            * (1 - (2 * cf.G.whatUnitHuh * m) / (r * cf.C.cmtrPsec ** 2)) ** (-1)
+            * (1 + P / (self.densityEOS(P) * (cf.C.cmtrPsec ** 2))) \
+            * (1 + (4 * np.pi * (r ** 3) * P) / (m * (cf.C.cmtrPsec ** 2))) \
+            * ((1 - (2 * cf.G.whatUnitHuh * m) / (r * (cf.C.cmtrPsec ** 2))) ** (-1))
+
+    def getDensityRadius(self, rhoH=1e4, stopTime=2e10, method="rk4", pressure="Relativistic"):
+
+        diffM = df.DifferentialEquation(["p", "r"], "m", self.massEquation, cf.Var.m, 1)
+
+        if pressure == "Relativistic":
+            diffP = df.DifferentialEquation(["m", "p", "r"], "p", self.relativisticPressure,
+                                            self.pressureEOS(self.density), 2)
+        elif pressure == "Non-Relativistic":
+            diffP = df.DifferentialEquation(["m", "p", "r"], "p", self.nonRelativePressure,
+                                            self.pressureEOS(self.density), 2)
+        else:
+            raise ex.InvalidPressureMethod(pressure)
+
+        diffEqs = df.DifferentialEquationSystem([diffM, diffP])
+        diffS = df.DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
+
+        rMod = diffS.varDict.get("r")
+        rMod[0] = 1
+        diffS.varDict.update({"r": rMod})
+        diffS.addThreshold({"p": 1e-10})
+
+        if method == "rk4":
+            diffS.rk4()
+        elif method == "euler":
+            diffS.euler()
+        else:
+            raise ex.InvalidNumericalMethod(method)
+
+        if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
+
+            r = diffS.varDict.get("r")/1e5
+            rho = self.densityEOS(diffS.varDict.get("p"))
+
+        else:
+            return 0, 0
+
+        return r, rho
 
     def getMassRadius(self, rhoH=1e5, stopTime=2e10, method="rk4", pressure="Relativistic"):
 
@@ -64,7 +91,7 @@ class Star(abc.ABC):
             diffP = df.DifferentialEquation(["m", "p", "r"], "p", self.nonRelativePressure,
                                             self.pressureEOS(self.density), 2)
         else:
-            raise InvalidPressureMethod(pressure)
+            raise ex.InvalidPressureMethod(pressure)
 
         diffEqs = df.DifferentialEquationSystem([diffM, diffP])
         diffS = df.DifferentialSolver(diffEqs, rhoH, stopTime=stopTime)
@@ -79,7 +106,7 @@ class Star(abc.ABC):
         elif method == "euler":
             diffS.euler()
         else:
-            raise InvalidNumericalMethod(method)
+            raise ex.InvalidNumericalMethod(method)
 
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
 
@@ -97,12 +124,16 @@ class Star(abc.ABC):
 
         return dataValues[0], dataValues[1]
 
+    def getEOSData(self, rhoMin=1, rhoMax=1e14, rhoNum=100):
+        densityValues = np.linspace(rhoMin, rhoMax, rhoNum)
+        return densityValues, self.pressureEOS(densityValues)
+
 
 class Polytropic(Star):
 
     def pressureEOS(self, inputList: np.ndarray | float):
         rho = inputList
-        return cf.Var.K * (rho ** (1 + 1 / cf.Var.n))
+        return cf.Var.K * (rho ** (1 + (1 / cf.Var.n)))
 
     def densityEOS(self, inputList: np.ndarray | float):
         P = inputList
@@ -133,6 +164,7 @@ class NeutronStar(Star):
 
     def densityEOS(self, inputList: np.ndarray | float):
         return self.densityEOS(inputList)
+
 
     def __init__(self, density, cubicSplinePressure, cubicSplineDensity):
         self.density = density
