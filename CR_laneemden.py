@@ -1,7 +1,7 @@
 import numpy as np
 import CR_diffsolver as df
 import CR_exceptions as ex
-
+import CR_config as cf
 
 class LaneEmden:
 
@@ -17,7 +17,7 @@ class LaneEmden:
     def _theta(self, phi: np.ndarray):
         return phi[0]
 
-    def getSolution(self, xiH=0.0005, stopTime=35, method="rk4"):
+    def getSolution(self, xiH=0.0005, stopTime=cf.Sys.laneEmdenRunTime, method="rk4"):
         diffEq1 = df.DifferentialEquation(["phi", "theta", "xi"], "phi", self._phi, 0, 2)
         diffEq2 = df.DifferentialEquation(["phi"], "theta", self._theta, 1, 0)
         differentialSystem = df.DifferentialEquationSystem([diffEq1, diffEq2])
@@ -33,17 +33,17 @@ class LaneEmden:
 
         return differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta")
 
-    def getAnalyticalSolution(self, num=1000, stopTime=35):
+    def getAnalyticalSolution(self, num=1000, stopTime=cf.Sys.laneEmdenRunTime):
         match self.n:
-            case 0:
+            case 0.0:
                 xi = np.linspace(0, stopTime, num)
                 val = -(1 / 6) * (xi ** 2) + 1
                 return xi, val
-            case 1:
+            case 1.0:
                 xi = np.linspace(0, stopTime, num)
                 val = np.sin(xi) / xi
                 return xi, val
-            case 5:
+            case 5.0:
                 xi = np.linspace(0, stopTime, num)
                 val = 1 / (np.sqrt(1 + ((xi ** 2) / 3)))
                 return xi, val

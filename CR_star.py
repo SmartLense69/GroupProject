@@ -78,7 +78,7 @@ class Star(abc.ABC):
 
         return r, rho
 
-    def getMassRadius(self, rhoH=1e5, stopTime=2e10, method="rk4", pressure="Relativistic"):
+    def getMassRadius(self, rhoH=1e5, stopTime=2e10, method="rk4", pressure="Relativistic", verbose=False):
 
         dataValues = np.zeros(2)
 
@@ -122,6 +122,9 @@ class Star(abc.ABC):
         else:
             print("Calculation at rho = {0} skipped!".format(self.density))
 
+        if verbose:
+            print("For {0} pressure and rho = {1}: r = {2}, m = {3}"
+                  .format(pressure, self.density, dataValues[0], dataValues[1]))
         return dataValues[0], dataValues[1]
 
     def getEOSData(self, rhoMin=1, rhoMax=1e14, rhoNum=100):
@@ -164,7 +167,6 @@ class NeutronStar(Star):
 
     def densityEOS(self, inputList: np.ndarray | float):
         return self.densityEOS(inputList)
-
 
     def __init__(self, density, cubicSplinePressure, cubicSplineDensity):
         self.density = density

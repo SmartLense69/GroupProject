@@ -14,6 +14,7 @@ import numpy as np
 class Sys:
 
     threads = 16
+    laneEmdenRunTime = 50
 
 
 class C:
