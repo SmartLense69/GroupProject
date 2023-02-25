@@ -40,7 +40,7 @@ def eulerlimit(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
     """
 
     # initialise the arrays to be used
-    rvalues = np.arange(0, 1e11+h, h)
+    rvalues = np.arange(0, 1e9+h, h)
     # number of steps
     steps = np.shape(rvalues)[0]
     # solution arrays
@@ -70,7 +70,7 @@ def eulerlimit(masscont, starfunc, m0, rho0, G, c0, K, n, h, *arg):
 
 
 # outputs for different values of n
-n_list = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5]
+n_list = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
 colours = ['r', 'orange', 'yellow', 'lightgreen', 'g', 'cyan', 'b', 'purple', 'pink', 'k']
 
 # plot configs
@@ -88,11 +88,13 @@ for n, c in zip(n_list, colours):
     rho = (P / 5e11)**(n/(n+1))
 
     # plot curve
-    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label='n={0}'.format(n)) #rho/np.max(rho)
+    plt.plot(r/np.max(r), rho/np.max(rho), c=c, label="{0}".format(n)) #rho/np.max(rho) r/np.max(r)
 
 # plot configs
-plt.title('Euler hydrostatic')
-plt.xlabel('r')
-plt.ylabel(r'$\rho$')
-plt.legend()
+plt.legend(title="n")
+# plt.title('Euler hydrostatic')
+plt.xlabel(r'${r}/{r_{max}}$')
+# plt.xlabel('r')
+plt.ylabel(r'${\rho}/{\rho_{max}}$')
+plt.grid()
 plt.show()

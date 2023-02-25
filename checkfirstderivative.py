@@ -32,8 +32,8 @@ def fitlinear(x, a, b):
 # defining range of values to plot fit function over, sufficient to be smooth line
 fith_smooth = np.linspace(min(testh), max(testh), 1000)
 
-plt.figure(figsize=(12, 4), layout='constrained')
-plt.suptitle('Error Plots Running to 1 for Derivative')
+# plt.figure(figsize=(12, 4), layout='constrained')
+# plt.suptitle('Error Plots Running to 1 for Derivative')
 
 js = [0, 1, 5]
 indices = [1, 2, 3]
@@ -99,7 +99,7 @@ for j, index, ana in zip(js, indices, analyt):
 
     print()
 
-    plt.subplot(1, 3, index)
+    # plt.subplot(1, 3, index)
 
     # plt.scatter(testh, eulererrors, label='Euler', color='purple')
 
@@ -108,17 +108,28 @@ for j, index, ana in zip(js, indices, analyt):
     # plt.scatter(testh, midpointerrors, label='Midpoint')
     # plt.plot(fith_smooth, 10 ** midpointerrorfit, label='Midpoint Fit')
 
-    plt.scatter(testh, fourtherrors, label='3/8-Rule RK4')
-    plt.plot(fith_smooth, 10 ** fourtherrorfit, label='3/8-Rule Fit')
+    plt.scatter(testh, fourtherrors, label='3/8-Rule RK4', color='darkviolet')
+    plt.plot(fith_smooth, 10 ** fourtherrorfit, linestyle='--', color='darkviolet')
 
-    plt.scatter(testh, rk4errors, label='Classic RK4')
-    plt.plot(fith_smooth, 10 ** rk4errorfit, label='RK4 Fit')
+    plt.scatter(testh, rk4errors, label='Classic RK4', color='red')
+    plt.plot(fith_smooth, 10 ** rk4errorfit, linestyle='--', color='red')
+
+    # plt.legend()
+    # plt.xscale('log')
+    # plt.yscale('log')
+    # plt.xlabel('h')
+    # plt.ylabel('Absolute Error')
+    # plt.title('n = {0}'.format(j))
 
     plt.legend()
+    plt.grid()
     plt.xscale('log')
     plt.yscale('log')
-    plt.xlabel('h')
-    plt.ylabel('Absolute Error')
-    plt.title('n = {0}'.format(j))
+    plt.xlabel('h (Log Scale)')
+    plt.ylabel('Absolute Error (Log Scale)')
+    # plt.ylim(1e-15, 1e-1)
+    # plt.xlim(1e-4, 1e-1)
+    # plt.title('n = {0}'.format(j))
+    plt.show()
 
-plt.show()
+# plt.show()
