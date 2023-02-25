@@ -3,6 +3,7 @@ class Param:
     POLYTROPIC:     list[str] = ["-p", "--polytropic"]
     WHITE_DWARF:    list[str] = ["-w", "--whiteDwarf"]
     NEUTRON_STAR:   list[str] = ["-ns", "--neutronStar"]
+    RK2:            list[str] = ["-rk2", "--runge-kutta-2"]
     RK4:            list[str] = ["-rk4", "--runge-kutta-4"]
     EULER:          list[str] = ["-e", "--euler"]
     DENSITY:        list[str] = ["-rho=", "--density"]

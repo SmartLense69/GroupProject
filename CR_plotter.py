@@ -192,10 +192,10 @@ def plotNeutronStarEOS():
     plt.show()
 
 
-def plotLaneEmden(n, analytical):
+def plotLaneEmden(n, analytical, method="rk4"):
 
     # plt.figure(figsize=(9, 8), dpi=100)
-    xi, theta = le.LaneEmden(n).getSolution(stopTime=50)
+    xi, theta = le.LaneEmden(n).getSolution(stopTime=50, method=method)
     plt.plot(xi, theta, label="${0}$".format(n))
     if analytical:
         plotLaneEmdenAnalytical(n)

@@ -26,6 +26,8 @@ class LaneEmden:
 
         if method == "rk4":
             differentialSolver.rk4()
+        elif method == "rk2":
+            differentialSolver.rk2()
         elif method == "euler":
             differentialSolver.euler()
         else:

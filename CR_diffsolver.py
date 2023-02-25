@@ -367,6 +367,96 @@ class DifferentialSolver:
                                 self.varDict.update({variable: self.varDict.get(variable)[:_i - 1]})
                             return
 
+    def rk2(self) -> None:
+        """
+        Solves the differential equation system via
+        Runge-Kutta-2md Order.
+        """
+
+        self.__resetVarDict()
+
+        NUMK: int = 2
+        """
+        This is the number of coefficients for the RK4 algorithm.
+        It is 2 and constant.
+        """
+
+        # Iterate through the steps
+        for _i in range(1, self.stepNum):
+
+            coefDict = {}
+            """
+            The coefficient Dictionary keeps track of the k-coefficients for each
+            differential equation.
+            """
+
+            # Fill the coefficient list with the output variables of the
+            # different differential equations with empty arrays of size NUMK
+            for variable in self.diffSystem.listOutput:
+                coefDict[variable] = np.zeros(NUMK)
+
+            # We need four coefficients, so iterate through them
+            for j in range(0, NUMK):
+
+                # For each coefficient...
+                for coef in coefDict.keys():
+
+                    # ... get the corresponding differential equation
+                    diff = self.diffSystem.getByOutput(coef)
+
+                    # This is for the function call
+                    inputList = []
+
+                    # ... iterate through the inputs of the differential equation
+                    for inputVar in diff.inputVarNames:
+
+                        # ... if the input variable is a "time-dependent" one,
+                        # add r[i - 1] + c[j + 1] * h
+                        if inputVar in diff.timeVar:
+                            inputList.append(self.varDict.get(inputVar)[_i - 1] +
+                                             cf.RK2.C[j + 1] * self.stepSize)
+
+                        # ... if the input variable is a variable associated
+                        # with coefficients, do a[j + 1] * coef[coefNum]
+
+                        elif inputVar in coefDict:
+                            sumInput = self.varDict.get(inputVar)[_i - 1]
+
+                            # E.g. if j = 2 atm, go up only to the first coefficient
+                            for coefNum in range(0, j - 1):
+                                sumInput += cf.RK2.C[coefNum + 1] * coefDict.get(inputVar)[coefNum]
+                            inputList.append(sumInput)
+                        else:
+                            inputList.append(self.varDict.get(inputVar)[_i - 1])
+
+                    # The output is the coefficient
+                    output = self.stepSize * diff.functionCall(inputList)
+                    coefDict.get(coef)[j] = output
+
+            # Combine all coefficients to get the ith element
+            for output in self.diffSystem.listOutput:
+                outputArray = self.varDict.get(output)
+                outputSum = outputArray[_i - 1]
+                for m in range(1, NUMK):
+                    outputSum += cf.RK2.C[m] * coefDict.get(output)[m - 1]
+                outputArray[_i] = outputSum
+
+                # Fail-safe if a value is nan or inf
+                # Cut the array at the place where the invalid value was encountered
+                if np.isnan(outputArray[_i]) or np.isinf(outputArray[_i]):
+                    wr.warn("RK4: Output value is invalid", RuntimeWarning)
+                    self.varDict.update({output: outputArray})
+                    for variable in self.varDict:
+                        self.varDict.update({variable: self.varDict.get(variable)[:_i - 1]})
+                    return
+                else:
+                    if self.thresholdDict.get(output) is not None:
+                        self.varDict.update({output: outputArray})
+                        if outputArray[_i] < self.thresholdDict.get(output):
+                            for variable in self.varDict:
+                                self.varDict.update({variable: self.varDict.get(variable)[:_i - 1]})
+                            return
+
     def euler(self) -> None:
 
         # Reset the variable dictionary, so we don't use a solution

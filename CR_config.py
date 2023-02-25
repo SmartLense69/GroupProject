@@ -73,3 +73,8 @@ class RK4:
                      [None, 0, 0, 1]], dtype=np.float64)
     B = np.array([None, 1 / 6, 1 / 3, 1 / 3, 1 / 6], dtype=np.float64)
     C = np.array([None, 0, 1 / 2, 1 / 2, 1], dtype=np.float64)
+
+
+class RK2:
+
+    C = np.asarray([None, 1, 0.5], dtype=np.float64)

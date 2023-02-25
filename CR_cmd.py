@@ -69,6 +69,8 @@ class CommandLineInput:
                     elif P.N_MAX in self.argv[i]:
                         self.nMax = self._convertToFloat(inputString=self.argv[i].replace(P.N_MAX, ""),
                                                          param="n-Value")
+                    elif self.argv[i] == P.RK2[0] or self.argv[i] == P.RK2[1]:
+                        self.method = "rk2"
                     elif self.argv[i] == P.RK4[0] or self.argv[i] == P.RK4[1]:
                         self.method = "rk4"
                     elif self.argv[i] == P.EULER[0] or self.argv[i] == P.EULER[1]:
@@ -122,6 +124,8 @@ class CommandLineInput:
                         self.densityNum = self._convertToInt(
                             inputString=self.argv[i].replace(P.DENSITY_NUM[1], ""),
                             param="density")
+                    elif self.argv[i] == P.RK2[0] or self.argv[i] == P.RK2[1]:
+                        self.method = "rk2"
                     elif self.argv[i] == P.RK4[0] or self.argv[i] == P.RK4[1]:
                         self.method = "rk4"
                     elif self.argv[i] == P.EULER[0] or self.argv[i] == P.EULER[1]:
@@ -140,7 +144,7 @@ class CommandLineInput:
             print("Please provide a numerical method.")
             sys.exit(ec.MISSING_ARGUMENT)
         else:
-            if self.method not in ["rk4", "euler"]:
+            if self.method not in ["rk2", "rk4", "euler"]:
                 print("The numerical method {0} is not supported.".format(self.method))
         if self.laneEmden is not None:
             if self.starType is not None:
@@ -177,9 +181,9 @@ class CommandLineInput:
             plt.figure(figsize=(9, 8), dpi=100)
             if self.n is not None:
                 if self.analytical is not None:
-                    plotter.plotLaneEmden(n=self.n, analytical=self.analytical)
+                    plotter.plotLaneEmden(n=self.n, analytical=self.analytical, method=self.method)
                 else:
-                    plotter.plotLaneEmden(n=self.n, analytical=False)
+                    plotter.plotLaneEmden(n=self.n, analytical=False, method=self.method)
             else:
                 if self.analytical is not None:
                     plotter.plotLaneEmdenAnalyticalAll()
@@ -200,20 +204,20 @@ class CommandLineInput:
             if self.density is not None:
                 match self.starType:
                     case "polytropic":
-                        plotter.printPolytropic(self.density, self.method)
+                        plotter.printPolytropic(self.density, method=self.method)
                     case "whiteDwarf":
-                        plotter.printPolytropic(self.density, self.method)
+                        plotter.printPolytropic(self.density, method=self.method)
                     case "neutronStar":
-                        plotter.printPolytropic(self.density, self.method)
+                        plotter.printPolytropic(self.density, method=self.method)
             else:
                 match self.starType:
                     case "polytropic":
                         plotter.plotPolytropicRange(rhoMin=self.densityMin, rhoMax=self.densityMax,
-                                                    rhoNum=self.densityNum, rhoH=self.densityStep)
+                                                    rhoNum=self.densityNum, rhoH=self.densityStep, method=self.method)
                     case "whiteDwarf":
-                        plotter.plotWhiteDwarf(self.densityMin, self.densityMax, self.densityNum)
+                        plotter.plotWhiteDwarf(self.densityMin, self.densityMax, self.densityNum, method=self.method)
                     case "neutronStar":
-                        plotter.plotNeutronStar(self.densityMin, self.densityMax, self.densityNum)
+                        plotter.plotNeutronStar(self.densityMin, self.densityMax, self.densityNum, method=self.method)
 
     def __init__(self, argcP: int, argvP: list[str]):
 

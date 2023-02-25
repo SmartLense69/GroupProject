@@ -61,7 +61,9 @@ class Star(abc.ABC):
         diffS.varDict.update({"r": rMod})
         diffS.addThreshold({"p": 1e-10})
 
-        if method == "rk4":
+        if method == "rk2":
+            diffS.rk2()
+        elif method == "rk4":
             diffS.rk4()
         elif method == "euler":
             diffS.euler()
