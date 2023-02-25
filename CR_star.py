@@ -105,8 +105,12 @@ class Star(abc.ABC):
 
         if method == "rk4":
             diffS.rk4()
+        elif method == "rk2":
+            diffS.rk2()
         elif method == "euler":
             diffS.euler()
+        elif method == "rkf":
+            diffS.rkf()
         else:
             raise ex.InvalidNumericalMethod(method)
 

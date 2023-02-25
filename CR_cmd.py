@@ -73,6 +73,8 @@ class CommandLineInput:
                         self.method = "rk2"
                     elif self.argv[i] == P.RK4[0] or self.argv[i] == P.RK4[1]:
                         self.method = "rk4"
+                    elif self.argv[i] == P.RKF[0] or self.argv[i] == P.RKF[1]:
+                        self.method = "rkf"
                     elif self.argv[i] == P.EULER[0] or self.argv[i] == P.EULER[1]:
                         self.method = "euler"
                     elif self.argv[i] == P.ANALYTICAL[0] or self.argv[i] == P.ANALYTICAL[1]:
@@ -128,6 +130,8 @@ class CommandLineInput:
                         self.method = "rk2"
                     elif self.argv[i] == P.RK4[0] or self.argv[i] == P.RK4[1]:
                         self.method = "rk4"
+                    elif self.argv[i] == P.RKF[0] or self.argv[i] == P.RKF[1]:
+                        self.method = "rkf"
                     elif self.argv[i] == P.EULER[0] or self.argv[i] == P.EULER[1]:
                         self.method = "euler"
                     elif self.argv[i] == P.SHOW_EOS[0] or self.argv[i] == P.SHOW_EOS[1]:
@@ -144,7 +148,7 @@ class CommandLineInput:
             print("Please provide a numerical method.")
             sys.exit(ec.MISSING_ARGUMENT)
         else:
-            if self.method not in ["rk2", "rk4", "euler"]:
+            if self.method not in ["rk2", "rk4", "rkf", "euler"]:
                 print("The numerical method {0} is not supported.".format(self.method))
         if self.laneEmden is not None:
             if self.starType is not None:
