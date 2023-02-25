@@ -13,7 +13,7 @@ import numpy as np
 
 class Sys:
 
-    threads = 16
+    threads = 4
     laneEmdenRunTime = 50
 
 

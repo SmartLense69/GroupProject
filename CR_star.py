@@ -1,7 +1,6 @@
 import abc
 
 from matplotlib import pyplot as plt
-from scipy.interpolate import CubicSpline
 
 import CR_config as cf
 import numpy as np
@@ -40,7 +39,11 @@ class Star(abc.ABC):
             * (1 + (4 * np.pi * (r ** 3) * P) / (m * (cf.C.cmtrPsec ** 2))) \
             * ((1 - (2 * cf.G.whatUnitHuh * m) / (r * (cf.C.cmtrPsec ** 2))) ** (-1))
 
-    def getDensityRadius(self, rhoH=1e4, stopTime=2e10, method="rk4", pressure="Relativistic"):
+    def getDensityRadiusSingle(self, rhoH=1e4, stopTime=2e10, method="rk4", pressure="Relativistic",
+                               verbose=True):
+
+        if verbose:
+            print("Called with n = {0}".format(cf.Var.n))
 
         diffM = df.DifferentialEquation(["p", "r"], "m", self.massEquation, cf.Var.m, 1)
 
@@ -65,6 +68,8 @@ class Star(abc.ABC):
             diffS.rk2()
         elif method == "rk4":
             diffS.rk4()
+        elif method == "rkf":
+            diffS.rkf()
         elif method == "euler":
             diffS.euler()
         else:
@@ -76,7 +81,8 @@ class Star(abc.ABC):
             rho = self.densityEOS(diffS.varDict.get("p"))
 
         else:
-            return 0, 0
+            r = 0
+            rho = 0
 
         return r, rho
 
@@ -127,10 +133,12 @@ class Star(abc.ABC):
 
         else:
             print("Calculation at rho = {0} skipped!".format(self.density))
+            return 0, 0
 
         if verbose:
             print("For {0} pressure and rho = {1}: r = {2}, m = {3}"
                   .format(pressure, self.density, dataValues[0], dataValues[1]))
+
         return dataValues[0], dataValues[1]
 
     def getEOSData(self, rhoMin=1, rhoMax=1e14, rhoNum=100):

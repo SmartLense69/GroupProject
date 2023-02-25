@@ -9,24 +9,33 @@ import CR_laneemden as le
 plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
 
 
-def plotPolytropicRhoRadius(nMin=0, nMax=5.5, nStep=0.5):
+def legendWithoutDuplicate(ax):
+    handles, labels = ax.get_legend_handles_labels()
+    unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
+    ax.legend(*zip(*unique))
+
+
+def plotRhoRadius(nMin=0, nMax=5.5, nStep=0.5, method="rk4", verbose=False):
 
     nList = np.arange(nMin, nMax, nStep)
 
-    plt.rcParams.update({'font.size': 18, "font.family": "Times New Roman"})
     plt.figure(figsize=(9, 8), dpi=100)
+    if verbose:
+        print("Plotting density-radius plot for polytropic stars")
 
     for n in nList:
         cf.Var.n = n
-        r, rho = star.Polytropic(cf.Var.rho).getDensityRadius(method="rk4", pressure="Non-Relativistic")
+        if verbose:
+            print("Calculating {0}".format(n))
+        r, rho = star.Polytropic(cf.Var.rho).getDensityRadiusSingle(method=method, pressure="Non-Relativistic")
         plt.plot(r/np.max(r), rho/np.max(rho), label="n = {0}".format(n))
 
     cf.Var.n = 1.5
 
-    plt.xlabel("radius [km]")
+    plt.xlabel("Dimensionless radius")
     plt.ylabel("Dimensionless density")
     plt.grid()
-    plt.legend()
+    plt.legend(title="n")
     plt.show()
 
 

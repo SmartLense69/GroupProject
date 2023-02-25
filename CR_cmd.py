@@ -126,6 +126,15 @@ class CommandLineInput:
                         self.densityNum = self._convertToInt(
                             inputString=self.argv[i].replace(P.DENSITY_NUM[1], ""),
                             param="density")
+                    elif P.N_MIN in self.argv[i]:
+                        self.nMin = self._convertToFloat(inputString=self.argv[i].replace(P.N_MIN, ""),
+                                                         param="n-Value")
+                    elif P.N_STEP in self.argv[i]:
+                        self.nH = self._convertToFloat(inputString=self.argv[i].replace(P.N_STEP, ""),
+                                                       param="n-Value")
+                    elif P.N_MAX in self.argv[i]:
+                        self.nMax = self._convertToFloat(inputString=self.argv[i].replace(P.N_MAX, ""),
+                                                         param="n-Value")
                     elif self.argv[i] == P.RK2[0] or self.argv[i] == P.RK2[1]:
                         self.method = "rk2"
                     elif self.argv[i] == P.RK4[0] or self.argv[i] == P.RK4[1]:
@@ -144,6 +153,7 @@ class CommandLineInput:
             sys.exit(ec.MISSING_ARGUMENT)
 
     def _sanitizeInput(self):
+        nProvided = False
         if self.method is None:
             print("Please provide a numerical method.")
             sys.exit(ec.MISSING_ARGUMENT)
@@ -167,15 +177,24 @@ class CommandLineInput:
                 sys.exit(ec.INVALID_ARGUMENT)
             if self.starType not in ["polytropic", "whiteDwarf", "neutronStar"]:
                 print("The star type {0} is not supported".format(self.starType))
+            if self.starType == "polytropic":
+                if self.nMin is not None or self.nMax is not None or self.nH is not None:
+                    # I am not negating this statement.
+                    if self.nMin is not None and self.nMax is not None and self.nH is not None:
+                        nProvided = True
+                    else:
+                        print("Please provide a range for n of the form: min, step, max")
+                        sys.exit(ec.MISSING_ARGUMENT)
             if self.density is not None:
                 if self.densityNum is not None or self.densityMin \
                         is not None or self.densityMax is not None or self.densityNum:
                     print("Either specify a single density, or give a range.")
                     sys.exit(ec.INVALID_PARAMETER)
-            elif self.densityNum is None or self.densityMin \
-                    is None or self.densityMax is None or self.densityNum is None:
+            elif (self.densityNum is None or self.densityMin
+                    is None or self.densityMax is None or self.densityNum is None) and nProvided is False:
                 print("Please provide a range for density of the form: min, step, max, num")
                 sys.exit(ec.MISSING_ARGUMENT)
+
         else:
             print("Please specify first what star type or lane emden solution is needed.")
             sys.exit(ec.MISSING_ARGUMENT)
@@ -213,6 +232,9 @@ class CommandLineInput:
                         plotter.printPolytropic(self.density, method=self.method)
                     case "neutronStar":
                         plotter.printPolytropic(self.density, method=self.method)
+            if self.starType == "polytropic" and \
+                (self.nMin is not None and self.nMax is not None and self.nH is not None):
+                plotter.plotRhoRadius(nMin=self.nMin, nMax=self.nMax, nStep=self.nH, method=self.method)
             else:
                 match self.starType:
                     case "polytropic":

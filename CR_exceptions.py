@@ -14,3 +14,9 @@ class NoAnalyticalSolution(Exception):
 
     def __init__(self, wrongN):
         super().__init__("There is no valid solution for n = {o}".format(wrongN))
+     
+        
+class MissingPlotAxis(Exception):
+    
+    def __init__(self):
+        super().__init__("You cannot plot without providing an matplotlib.axis object.")
