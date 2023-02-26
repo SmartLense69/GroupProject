@@ -13,8 +13,8 @@ if __name__ == '__main__':
 
     # plotter.plotPolytropicRhoRadius()
     # plotter.plotPolytropic()
-    # plotter.plotWhiteDwarf()
-    # plotter.plotNeutronStar()
+    # plotter.plotWhiteDwarfRange()
+    # plotter.plotNeutronStarRange()
     # plotter.plotLaneEmden()
     # plotter.plotPolytropicEOS()
     # plotter.plotWhiteDwarfEOS()

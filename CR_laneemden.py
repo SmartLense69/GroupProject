@@ -3,7 +3,12 @@ import CR_diffsolver as df
 import CR_exceptions as ex
 import CR_config as cf
 
+
 class LaneEmden:
+    """
+        This class handles behaviour about the Lane-Emden equation.
+        It includes
+    """
 
     def _phi(self, listInput: np.ndarray):
         phi0 = listInput[0]

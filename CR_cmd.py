@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 import CR_exitcodes as ec
 from CR_param import Param as P
 import CR_plotter as plotter
-import CR_star as star
 
 
 class CommandLineInput:
@@ -234,16 +233,16 @@ class CommandLineInput:
                         plotter.printPolytropic(self.density, method=self.method)
             if self.starType == "polytropic" and \
                 (self.nMin is not None and self.nMax is not None and self.nH is not None):
-                plotter.plotRhoRadius(nMin=self.nMin, nMax=self.nMax, nStep=self.nH, method=self.method)
+                plotter.plotPolytropicDensityRadius(nMin=self.nMin, nMax=self.nMax, nStep=self.nH, method=self.method)
             else:
                 match self.starType:
                     case "polytropic":
                         plotter.plotPolytropicRange(rhoMin=self.densityMin, rhoMax=self.densityMax,
                                                     rhoNum=self.densityNum, rhoH=self.densityStep, method=self.method)
                     case "whiteDwarf":
-                        plotter.plotWhiteDwarf(self.densityMin, self.densityMax, self.densityNum, method=self.method)
+                        plotter.plotWhiteDwarfRange(self.densityMin, self.densityMax, self.densityNum, method=self.method)
                     case "neutronStar":
-                        plotter.plotNeutronStar(self.densityMin, self.densityMax, self.densityNum, method=self.method)
+                        plotter.plotNeutronStarRange(self.densityMin, self.densityMax, self.densityNum, method=self.method)
 
     def __init__(self, argcP: int, argvP: list[str]):
 

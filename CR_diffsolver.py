@@ -1,3 +1,9 @@
+"""
+    Differential equation solver module.
+    Defines differential equations, differential systems and differential systems solvers
+"""
+
+
 import warnings as wr
 import numpy as np
 from matplotlib import pyplot as plt
@@ -5,53 +11,15 @@ from scipy.interpolate import CubicSpline
 
 import CR_config as cf
 
+# Enable this to raise an exception everytime
+# a runtime error is encountered.
+# Left in for debugging purposes
 # np.seterr(all='raise')
 # wr.simplefilter('error')
 
+
 _RHO = 0
 _P = 0
-
-
-class InputVariableDuplicateError(Exception):
-    """
-    Thrown when a differential equation has input variables
-    that share the same parameter name
-    """
-
-    def __init__(self, nonUniqueVariableName: str):
-        self._nonUniqueVariableName = nonUniqueVariableName
-        self._message = "A differential equation should have no input variable names that share the same name." \
-                        "The input variable name in question is: "
-        super().__init__(self._message + self._nonUniqueVariableName)
-
-
-class InputVariableNumberMismatchError(Exception):
-    """
-    Thrown when a differential equation was called with
-    too many or to little input arguments.
-    """
-
-    def __init__(self, sizeDictionary: int, sizeInputVariables: int):
-        self._lenInputDictionary = sizeDictionary
-        self._lenInputVariables = sizeInputVariables
-        self._message = "The differential equation requires " \
-                        "{0} inputs but {1} were given" \
-            .format(self._lenInputVariables, self._lenInputDictionary)
-        super().__init__(self._message)
-
-
-class SortError(Exception):
-    """
-    Thrown when the list of parameters are not sorted.
-    """
-
-    def __init__(self, flag: int):
-        match flag:
-            case 0:
-                super().__init__("The input variable names list is not sorted")
-            case 1:
-                super().__init__("The differential equations are not correctly "
-                                 "sorted by their calculation order")
 
 
 class DifferentialEquation:
@@ -78,8 +46,8 @@ class DifferentialEquation:
         Checks if the input variable names are sorted alphabetically
         They have to be alphabetically sorted, as of 04/02/2023,
         this class assigns input values via a dictionary, that is sorted alphabetically.
-        TODO: Implement method so input variables do not have to be sorted alphabetically.
-        TODO: The sort() method sorts after ASCII occurrence, not after the actual alphabet. USE ONLY SMALL LETTERS
+        TODO: [Marc] Implement method so input variables do not have to be sorted alphabetically.
+        TODO: [Marc] The sort() method sorts after ASCII occurrence, not after the actual alphabet. USE ONLY SMALL LETTERS
         """
         sortedInput = self.inputVarNames.copy()
         sortedInput.sort()

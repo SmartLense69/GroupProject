@@ -4,9 +4,9 @@ To prevent confusion with units, each constant is its own class.
 To get the constant in the corresponding unit,
 checkout the fields of each constant.
 
-Example:
-    Speed of light - C
-    Speed of light in meter per seconds - C.mps
+**Example:**
+Speed of light - C
+Speed of light in meter per seconds - C.mps
 """
 import numpy as np
 
@@ -40,7 +40,7 @@ class G:
     """
     Mtr3PKgSec2 = 6.67384e-11
 
-    # TODO: Determine units of this constant.
+    # TODO: [Olivia] Determine units of this constant.
     whatUnitHuh = 6.67384e-8
 
 
@@ -65,6 +65,9 @@ class Var:
 
 
 class RKF:
+    """
+    Coefficients for Runge-Kutta-Fehlberg.
+    """
 
     A = np.asarray([
         [None, None, None, None, None, None, None],
@@ -107,7 +110,11 @@ class RKF:
     "c" Coefficients for Runge-Kutta-Fehlberg.
     """
 
+
 class RK4:
+    """
+    The coefficients for Runge-Kutta-4th Order
+    """
 
     A = np.array([[None, None, None, None],
                      [None, None, None, None],
@@ -119,5 +126,8 @@ class RK4:
 
 
 class RK2:
+    """
+    Runge Kutta coefficient for the Midpoint/Runge-Kutta 2nd Order
+    """
 
     C = np.asarray([None, 1, 0.5], dtype=np.float64)

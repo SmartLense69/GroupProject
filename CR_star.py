@@ -1,36 +1,81 @@
+"""
+    Describes behaviour about stars.
+    Includes polytropic and neutron stars, as well as white dwarfs
+"""
+
+# abc stands for abstract base classes
+# This enables abstract classes and derivations
+
+from typing import Tuple
 import abc
-
-from matplotlib import pyplot as plt
-
 import CR_config as cf
 import numpy as np
 import CR_diffsolver as df
 import CR_exceptions as ex
 
+# TODO: [Marc] Add string parsing for CR_star objects.
+
 
 class Star(abc.ABC):
+    """
+        A star is defined by an equation of state (EOS), which should return density and pressure separately.
+        The class has the relativistic and the non-relativistic pressure function included, (i.e. TOV and Hydro)
+        as well as the mass equation, which is same for all types of stars.
+        A function to get the mass-radius and the density-radius is provided for all child classes.
+    """
+
     density: float
 
     @property
     def pressureEOS(self, *args):
+        """
+            Equation of state, that should return a pressure.
+            Overwrite to the equation of state for the child class.
+            :param args: inputList, preferably involving density.
+            :return: Pressure.
+        """
+
         raise NotImplementedError
 
     @property
     def densityEOS(self, *args):
+        """
+            Equation of state, that should return a density.
+            Overwrite to the equation of state for the child class.
+            :param args: inputList, preferably involving pressure.
+            :return: Density.
+        """
+
         raise NotImplementedError
 
     def massEquation(self, inputList: np.ndarray):
+        """
+            The mass equation of the star, being ``4 * np.pi * r ** 2 * self.densityEOS(P)``
+            :param inputList: [pressure, radius]
+            :return:
+        """
         P = inputList[0]
         r = inputList[1]
         return 4 * np.pi * r ** 2 * self.densityEOS(P)
 
     def nonRelativePressure(self, inputList: np.ndarray):
+        """
+        Non-relativistic pressure equation, also known as the hydrostatic equation.
+        :param inputList: [mass, pressure, radius]
+        :return: pressure
+        """
         m = inputList[0]
         P = inputList[1]
         r = inputList[2]
         return - ((cf.G.whatUnitHuh * m * self.densityEOS(P)) / r ** 2)
 
     def relativisticPressure(self, inputList: np.ndarray):
+        """
+            Relativistic pressure equation, also known as the Tolman–Oppenheimer (TOV) equation.
+            :param inputList: [mass, pressure, radius]
+            :return: pressure
+        """
+
         m = inputList[0]
         P = inputList[1]
         r = inputList[2]
@@ -39,8 +84,17 @@ class Star(abc.ABC):
             * (1 + (4 * np.pi * (r ** 3) * P) / (m * (cf.C.cmtrPsec ** 2))) \
             * ((1 - (2 * cf.G.whatUnitHuh * m) / (r * (cf.C.cmtrPsec ** 2))) ** (-1))
 
-    def getDensityRadiusSingle(self, rhoH=1e4, stopTime=2e10, method="rk4", pressure="Relativistic",
-                               verbose=True):
+    def getDensityRadius(self, rhoH: float = 1e4, stopTime: float = 2e10, method: str = "rk4",
+                         pressure: str = "Relativistic", verbose: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Get the density-radius data for the star.
+        :param rhoH: Density step. Do not increase blindly.
+        :param stopTime: How far should the differential equation solver solve for, in terms of density.
+        :param method: The numerical method that should be used to solve the neutron star solution.
+        :param pressure: The type of pressure function. Choose TOV or Hydro with ["Relativistic", "Non-Relativistic"]
+        :param verbose: If additional information should be printed, like current calculation interation.
+        :return: Radius and density numpy array. Returns 0, 0 if an invalid value was encountered in the calculations.
+        """
 
         if verbose:
             print("Called with n = {0}".format(cf.Var.n))
@@ -86,7 +140,17 @@ class Star(abc.ABC):
 
         return r, rho
 
-    def getMassRadius(self, rhoH=1e5, stopTime=2e10, method="rk4", pressure="Relativistic", verbose=False):
+    def getMassRadius(self, rhoH: float = 1e5, stopTime: float = 2e10, method: str = "rk4",
+                      pressure: str = "Relativistic", verbose: bool = False):
+        """
+        Get the mass-radius data for the star.
+        :param rhoH: Density step. Do not increase blindly.
+        :param stopTime: How far should the differential equation solver solve for, in terms of density.
+        :param method: The numerical method that should be used to solve the neutron star solution.
+        :param pressure: The type of pressure function. Choose TOV or Hydro with ["Relativistic", "Non-Relativistic"]
+        :param verbose: If additional information should be printed, like current calculation interation.
+        :return: Radius and mass numpy array. Returns 0, 0 if an invalid value was encountered in the calculations.
+        """
 
         dataValues = np.zeros(2)
 
@@ -118,7 +182,7 @@ class Star(abc.ABC):
         elif method == "rkf":
             diffS.rkf()
         else:
-            raise ex.InvalidNumericalMethod(method)
+            raise ex.InvalidNumericalMethod(wrongMethod=method)
 
         if len(diffS.varDict.get("r")) != 0 and len(diffS.varDict.get("m")) != 0:
 
@@ -142,11 +206,21 @@ class Star(abc.ABC):
         return dataValues[0], dataValues[1]
 
     def getEOSData(self, rhoMin=1, rhoMax=1e14, rhoNum=100):
+        """
+        Get equation of state data.
+        :param rhoMin: The minium range for density.
+        :param rhoMax: The maximum range for density.
+        :param rhoNum: The number of points in that range. (Generated by np.linspace)
+        :return:
+        """
         densityValues = np.linspace(rhoMin, rhoMax, rhoNum)
         return densityValues, self.pressureEOS(densityValues)
 
 
 class Polytropic(Star):
+    """
+        A polytropic star is a star, where its expansion is merely limited by gravitational and hydrostatic force.
+    """
 
     def pressureEOS(self, inputList: np.ndarray | float):
         rho = inputList
@@ -161,7 +235,10 @@ class Polytropic(Star):
 
 
 class WhiteDwarf(Star):
-
+    """
+        # TODO: [Olivia] Was it Fermi-Gas that was different to a polytropic star?
+        A white dwarf is just a really dense polytropic star.
+    """
     def pressureEOS(self, inputList: np.ndarray | float):
         return self.pressureEOS(inputList)
 
@@ -175,6 +252,10 @@ class WhiteDwarf(Star):
 
 
 class NeutronStar(Star):
+    """
+        Neutron stars are even denser.
+        Ich bin vielleicht dicht, aber Goethe is Dichter.
+    """
 
     def pressureEOS(self, inputList: np.ndarray | float):
         return self.pressureEOS(inputList)
@@ -186,5 +267,3 @@ class NeutronStar(Star):
         self.density = density
         self.pressureEOS = cubicSplinePressure
         self.densityEOS = cubicSplineDensity
-
-
