@@ -2,27 +2,52 @@ import numpy as np
 import CR_diffsolver as df
 import CR_exceptions as ex
 import CR_config as cf
-
+from typing import Tuple
 
 class LaneEmden:
     """
-        This class handles behaviour about the Lane-Emden equation.
-        It includes
+    This class handles behaviour about the Lane-Emden equation.
     """
 
-    def _phi(self, listInput: np.ndarray):
+    def _phi(self, listInput: np.ndarray) -> float:
+        """
+        Function for gradient phi.
+
+        Is of form: ``((-2 / xi) * phi0) - theta0^n``
+
+        :param listInput: [phi, theta, xi]
+        :return: Gradient of phi.
+        """
         phi0 = listInput[0]
         theta0 = listInput[1]
         xi = listInput[2]
+
+        # Added xi == 0 as a failsafe.
         if xi == 0:
             return xi
         else:
             return ((-2 / xi) * phi0) - theta0 ** self.n
 
-    def _theta(self, phi: np.ndarray):
+    @staticmethod
+    def _theta(phi: np.ndarray):
+        """
+        Function for theta gradient.
+
+        Is of form: ``dtheta/dx = phi``
+
+        :param phi:
+        :return:
+        """
         return phi[0]
 
-    def getSolution(self, xiH=0.0005, stopTime=cf.Sys.laneEmdenRunTime, method="rk4"):
+    def getSolution(self, xiH=0.0005, stopTime=cf.Sys.laneEmdenRunTime, method="rk4") -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Gets the solution for Lane-Emden.
+        :param xiH: The step size of xi.
+        :param stopTime: How far xi should be running to
+        :param method: The numerical method to solve it for.
+        :return: xi and theta.
+        """
         diffEq1 = df.DifferentialEquation(["phi", "theta", "xi"], "phi", self._phi, 0, 2)
         diffEq2 = df.DifferentialEquation(["phi"], "theta", self._theta, 1, 0)
         differentialSystem = df.DifferentialEquationSystem([diffEq1, diffEq2])
@@ -43,6 +68,12 @@ class LaneEmden:
         return differentialSolver.varDict.get("xi"), differentialSolver.varDict.get("theta")
 
     def getAnalyticalSolution(self, num=1000, stopTime=cf.Sys.laneEmdenRunTime):
+        """
+        Gets the analytical solution.
+        :param num:
+        :param stopTime:
+        :return:
+        """
         match self.n:
             case 0.0:
                 xi = np.linspace(0, stopTime, num)
@@ -59,5 +90,5 @@ class LaneEmden:
             case _:
                 raise ex.NoAnalyticalSolution
 
-    def __init__(self, inputN: int):
+    def __init__(self, inputN: float):
         self.n = inputN

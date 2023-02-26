@@ -1,14 +1,13 @@
 """
-    Differential equation solver module.
-    Defines differential equations, differential systems and differential systems solvers
+Differential equation solver module.
+Defines differential equations, differential systems and differential systems solvers.
 """
-
 
 import warnings as wr
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.interpolate import CubicSpline
-
+import CR_exceptions as ex
 import CR_config as cf
 
 # Enable this to raise an exception everytime
@@ -39,7 +38,7 @@ class DifferentialEquation:
             currentInputVarName: str = self.inputVarNames[index]
             for compareIndex in range(index + 1, self.inputVarSize):
                 if currentInputVarName == self.inputVarNames[compareIndex]:
-                    raise InputVariableDuplicateError(currentInputVarName)
+                    raise ex.InputVariableDuplicateError(currentInputVarName)
 
     def __checkInputSorting(self) -> None:
         """
@@ -53,7 +52,7 @@ class DifferentialEquation:
         sortedInput.sort()
         for sortedInputItem, inputVarNamesItem in zip(sortedInput, self.inputVarNames):
             if sortedInputItem is not inputVarNamesItem:
-                raise SortError(0)
+                raise ex.SortError(0)
 
     def call(self, inputValues: dict) -> float:
         """
@@ -66,7 +65,7 @@ class DifferentialEquation:
 
         # Check if the input variables has the same size of the dictionary keyword list
         if self.inputVarSize != sizeDictionary:
-            raise InputVariableNumberMismatchError(sizeDictionary, self.inputVarSize)
+            raise ex.InputVariableNumberMismatchError(sizeDictionary, self.inputVarSize)
 
         # Whenever a numpy array is created, always use np.float128
         numpyInputValues = np.zeros(sizeDictionary, dtype=np.float128)
@@ -133,7 +132,7 @@ class DifferentialEquationSystem:
                         # to compute the comparison differential equation, since the inputs of the
                         # current differential equation will never be met.
                         if compareDiff.outputVarName is inputVars and compareIndex > diffIndex:
-                            raise SortError(1)
+                            raise ex.SortError(1)
 
     def __unifyVariables(self) -> None:
         """

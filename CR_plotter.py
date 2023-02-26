@@ -55,7 +55,7 @@ def plotPolytropicDensityRadius(nMin: float = 0.0, nMax: float = 5.5, nStep: flo
         r, rho = star.Polytropic(cf.Var.rho).getDensityRadius(method=method, pressure="Non-Relativistic")
 
         # Divide by the max value to normalize the density and radius
-        plt.plot(r/np.max(r), rho/np.max(rho), label="n = {0}".format(n))
+        plt.plot(r / np.max(r), rho / np.max(rho), label="n = {0}".format(n))
 
     cf.Var.n = 1.5
 
@@ -78,7 +78,7 @@ def _cubicInverse(x: float, a: float, b: float, c: float) -> float:
     :param c: offset along y-axis.
     :return: The y-value of mentioned function.
     """
-    return a/((x + b) ** 3) + c
+    return a / ((x + b) ** 3) + c
 
 
 def printPolytropic(density: float, method: str) -> None:
@@ -163,14 +163,14 @@ def plotPolytropicRange(rhoMin: float = 1e7, rhoMax: float = 1e12, rhoNum: int =
 
     for i, rho in enumerate(rhoValues):
         print("Calculation {0}".format(i))
-        relDataValues[i, 0], relDataValues[i, 1] =\
+        relDataValues[i, 0], relDataValues[i, 1] = \
             star.Polytropic(rho).getMassRadius(rhoH=rhoH, method=method, verbose=verbose)
-        nonRelValues[i, 0], nonRelValues[i, 1] =\
+        nonRelValues[i, 0], nonRelValues[i, 1] = \
             star.Polytropic(rho).getMassRadius(rhoH=rhoH, method=method, verbose=verbose, pressure="Non-Relativistic")
 
     # Make the fit for the non-relativistic pressure function
     # TIP: The inline-comment noqa suppresses warnings for that particular line.
-    popt, _ = curve_fit(_cubicInverse, nonRelValues[:, 0], nonRelValues[:, 1], p0=[rhoH/10, 1, 1]) # noqa
+    popt, _ = curve_fit(_cubicInverse, nonRelValues[:, 0], nonRelValues[:, 1], p0=[rhoH / 10, 1, 1])  # noqa
     print(popt)
 
     plt.figure(figsize=(9, 8), dpi=100)
@@ -215,20 +215,23 @@ def plotWhiteDwarfRange(rhoMin: float = 1e6, rhoMax: float = 1e14, rhoNum: int =
 
     for i, rho in enumerate(rhoValues):
         print("Calculation {0}".format(i))
-        relDataValues[i, 0], relDataValues[i, 1] =\
+        relDataValues[i, 0], relDataValues[i, 1] = \
             star.WhiteDwarf(rho, pEOS, rhoEOS).getMassRadius(rhoH=rhoH, method=method, verbose=verbose)
-        nonRelValues[i, 0], nonRelValues[i, 1] =\
+        nonRelValues[i, 0], nonRelValues[i, 1] = \
             star.WhiteDwarf(rho, pEOS, rhoEOS).getMassRadius(rhoH=rhoH, method=method, verbose=verbose,
                                                              pressure="Non-Relativistic")
 
     plt.figure(figsize=(9, 8), dpi=100)
     plt.scatter(nonRelValues[:, 0], nonRelValues[:, 1], color="b", marker="o", label="Hydrostatic")
     plt.scatter(relDataValues[:, 0], relDataValues[:, 1], color="r", marker="v", label="TOV")
+    whiteDwarfMaxMass = np.max(relDataValues[:, 1])
+    plt.axhline(whiteDwarfMaxMass, color="r", linestyle="dashed", label="Chandrasekhar limit")
     plt.xlabel("radius [km]")
     plt.ylabel("mass [$M_{\odot}$]")
     plt.grid()
     plt.legend()
     plt.show()
+    print("White Dwarf Max Mass {0}".format(whiteDwarfMaxMass))
 
 
 def plotNeutronStarRange(rhoMin: float = 2.65e14, rhoMax: float = 1e15, rhoNum: int = 30, rhoH: float = 1e3,
@@ -262,12 +265,12 @@ def plotNeutronStarRange(rhoMin: float = 2.65e14, rhoMax: float = 1e15, rhoNum: 
 
     for i, rho in enumerate(rhoValues):
         print("Calculation {0}".format(i))
-        relDataValues[i, 0], relDataValues[i, 1] =\
+        relDataValues[i, 0], relDataValues[i, 1] = \
             star.NeutronStar(rho, pEOS, rhoEOS).getMassRadius(rhoH=rhoH, method=method, verbose=verbose)
 
     for i, rho in enumerate(rhoValues2):
         print("Calculation {0}".format(i))
-        nonRelValues[i, 0], nonRelValues[i, 1] =\
+        nonRelValues[i, 0], nonRelValues[i, 1] = \
             star.NeutronStar(rho, pEOS, rhoEOS).getMassRadius(rhoH=4 * rhoH, method=method, verbose=verbose,
                                                               pressure="Non-Relativistic")
 
@@ -276,6 +279,9 @@ def plotNeutronStarRange(rhoMin: float = 2.65e14, rhoMax: float = 1e15, rhoNum: 
     plt.scatter(relDataValues[:, 0], relDataValues[:, 1], color="r", marker="v", label="TOV")
     plt.xlabel("radius [km]")
     plt.ylabel("mass [$M_{\odot}$]")
+    neutronStarMaxMass = np.max(relDataValues[:, 1])
+    print("Neutron Star Max Mass {0}".format(neutronStarMaxMass))
+    plt.axhline(neutronStarMaxMass, color="r", linestyle="dashed", label="Neutron star mass limit")
     plt.grid()
     plt.legend()
     plt.show()
@@ -375,7 +381,7 @@ def plotLaneEmden(n: float, analytical: bool, method: str = "rk4") -> None:
     # plt.show()
 
 
-def plotLaneEmdenRange(nMin: float = 0.5, nMax:float = 5.5, nStep: float = 0.5) -> None:
+def plotLaneEmdenRange(nMin: float = 0.5, nMax: float = 5.5, nStep: float = 0.5) -> None:
     """
     Plots only the numerical solutions of Lane Emden.
     It does not show the plot, so it has to be followed up with plt.show()
@@ -454,4 +460,3 @@ def plotLaneEmdenAnalytical(n: float):
     plt.grid()
     # plt.legend(title="n")
     # plt.show()
-

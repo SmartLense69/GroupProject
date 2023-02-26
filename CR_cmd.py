@@ -1,38 +1,60 @@
+"""
+Deals with the command line argument inputs.
+"""
+
 import sys
-
 from matplotlib import pyplot as plt
-
 import CR_exitcodes as ec
 from CR_param import Param as P
 import CR_plotter as plotter
 
 
-class CommandLineInput:
+class InputReader:
+    """
+    Class to sanitize inputs given over the command line argument.
+    """
 
     def _printHelpHint(self):
+        """Prints out hint to user to use the help argument next time."""
         print("For more information, type {0} --help or {0} -h.".format(self.argv[0]))
 
     @staticmethod
-    def _printHelp():
+    def _printHelp() -> None:
+        """Prints out the manual for the application."""
         print("There are all valid command line arguments...")
         sys.exit(ec.SUCCESS)
 
-    def _printInvalidArg(self, index):
+    def _printInvalidArg(self, index) -> None:
         print("{0} is not a valid argument in this case.".format(self.argv[index]))
         self._printHelpHint()
         sys.exit(ec.INVALID_ARGUMENT)
 
-    def _checkForArgSyntax(self):
+    def _checkForArgSyntax(self) -> None:
+        """
+        Checks if there is a command line argument, that does not begin with '-'.
+        Cheap fail safe.
+        """
         for i, argv in enumerate(self.argv[1:]):
             if argv[0] != '-':
                 self._printInvalidArg(i + 1)
 
     @staticmethod
-    def _printInvalidParam(inputString, param):
+    def _printInvalidParam(inputString: str, param: str) -> None:
+        """
+        Prints out an error if the user put in a bad input argument.
+        :param inputString: The string that the user tried to put in as an argument.
+        :param param: The parameter that was at fault here. Used for mis-input for density and n-Values.
+        """
         print("{0} is not a valid {1}. A real positive number is required for a {1}.".format(inputString, param))
         sys.exit(ec.INVALID_PARAMETER)
 
-    def _convertToInt(self, inputString, param):
+    def _convertToInt(self, inputString: str, param: str):
+        """
+
+        :param inputString:
+        :param param:
+        :return:
+        """
         try:
             intResult = int(inputString)
             if intResult <= 0:
